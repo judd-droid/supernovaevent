@@ -9,30 +9,27 @@
 :root{
   --sn-red:#DD467D; --sn-black:#111827; --sn-gray:#6b7280;
   --bg:#f8fafc; --card:#ffffff; --line:#e5e7eb; --radius:18px;
-  --sel-bg:#ffe8f1; /* light red highlight */
+  --sel-bg:#ffe8f1;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{
-  margin:0; font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  color:var(--sn-black); background:linear-gradient(180deg,#fff,#f5f7fb);
-}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--sn-black);background:linear-gradient(180deg,#fff,#f5f7fb)}
+.hide{display:none !important}
 
 .app{max-width:720px;margin:0 auto;padding:12px 16px 96px}
-header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);
-  padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+header{position:sticky;top:0;z-index:10;background:var(--card);border-bottom:1px solid var(--line);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700}
 .brand .dot{width:10px;height:10px;border-radius:999px;background:var(--sn-red);box-shadow:0 0 0 3px #ffd4e5 inset}
 header .title{font-size:18px}
 .btn-icon{border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;cursor:pointer}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-  box-shadow:0 8px 32px rgba(17,24,39,.05);padding:16px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 8px 32px rgba(17,24,39,.05);padding:16px;margin:16px 0}
 .card h3{margin:0 0 12px;font-size:15px;color:#0f172a}
 .row{display:grid;gap:10px}
 .grid-2{grid-template-columns:1fr 1fr}
 .grid-3{grid-template-columns:1fr 1fr 1fr}
 @media (max-width:720px){.grid-3{grid-template-columns:1fr 1fr}}
+.mt8{margin-top:8px}
 .mt12{margin-top:12px}
 .mt16{margin-top:16px}
 
@@ -40,9 +37,7 @@ header .title{font-size:18px}
 textarea.input{min-height:110px;resize:vertical}
 .label{font-size:13px;color:var(--sn-gray);margin-bottom:6px}
 
-.opt{display:flex;align-items:center;justify-content:center;text-align:center;
-  padding:14px 10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;
-  cursor:pointer;user-select:none;font-weight:600;min-height:56px;line-height:1.2}
+.opt{display:flex;align-items:center;justify-content:center;text-align:center;padding:14px 10px;background:#fff;border:1.5px solid var(--line);border-radius:14px;cursor:pointer;user-select:none;font-weight:600;min-height:56px;line-height:1.2}
 .opt.small{font-weight:500;min-height:48px}
 .opt[data-selected="true"]{border-color:var(--sn-red);box-shadow:0 0 0 3px rgba(221,70,125,.12);background:var(--sel-bg)}
 .opt[data-variant="dark"][data-selected="true"]{background:#0f172a;color:#fff;border-color:#0f172a}
@@ -56,8 +51,7 @@ textarea.input{min-height:110px;resize:vertical}
 .button.full{width:100%}
 .small{font-size:12px;color:var(--sn-gray)}
 
-.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);border-top:1px solid var(--line);
-  backdrop-filter:saturate(180%) blur(6px);padding:10px 12px;display:flex;gap:12px;justify-content:center}
+.nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.95);border-top:1px solid var(--line);backdrop-filter:saturate(180%) blur(6px);padding:10px 12px;display:flex;gap:12px;justify-content:center}
 .tab{flex:1;border:2px solid #ffd1e2;background:#ffe3ee;color:#111;border-radius:18px;padding:10px 12px;font-weight:700;text-align:center;cursor:pointer}
 .tab[data-active="true"]{background:#fbd1e3}
 .tab.disabled{opacity:.5;pointer-events:none}
@@ -83,8 +77,24 @@ textarea.input{min-height:110px;resize:vertical}
 </header>
 
 <main class="app">
+  <!-- SETTINGS -->
+  <section id="tab-settings">
+    <div class="card">
+      <h3>Settings</h3>
+      <div class="row grid-2">
+        <div><div class="label">Advisor name</div><input id="s-advisor" class="input" placeholder="Your name" /></div>
+        <div><div class="label">Event Code</div><input id="s-event" class="input" placeholder="e.g., MDC-0910-AM" /></div>
+        <div><div class="label">Advisor mobile</div><input id="s-advisorPhone" class="input" placeholder="09xxxxxxxxx" inputmode="tel" /></div>
+      </div>
+      <div class="actions mt16">
+        <button id="btnSaveSettings" class="button primary">Save Settings</button>
+      </div>
+      <div class="small mt8" id="settingsWarn"></div> <!-- space above 'Saved.' -->
+    </div>
+  </section>
+
   <!-- NEW CHECKUP -->
-  <section id="tab-new">
+  <section id="tab-new" class="hide">
     <div class="card">
       <h3>Client</h3>
       <div class="row grid-2">
@@ -142,8 +152,19 @@ textarea.input{min-height:110px;resize:vertical}
       <div class="small">Tip: 30 days ≈ monthly. Example: ₱20/day ≈ ₱600/month.</div>
     </div>
 
+    <!-- NEW Q6 -->
     <div class="card">
-      <h3>6) Book a 15-min checkup</h3>
+      <h3>6) What age is closest to yours?</h3>
+      <div class="row grid-2" data-group="age">
+        <div class="opt" data-value="20 years old">20 years old</div>
+        <div class="opt" data-value="30 years old">30 years old</div>
+        <div class="opt" data-value="40 years old">40 years old</div>
+        <div class="opt" data-value="50 years old">50 years old</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>7) Book a 15-min checkup</h3>
       <div class="row grid-3" data-group="slot">
         <div class="opt" data-value="Before I leave / Lunch">Before I leave / Lunch</div>
         <div class="opt" data-value="Later today / After shift">Later today / After shift</div>
@@ -152,7 +173,7 @@ textarea.input{min-height:110px;resize:vertical}
     </div>
 
     <div class="card">
-      <h3>7) Where should we send your Quick Result?</h3>
+      <h3>8) Where should we send your Quick Result?</h3>
       <div class="row">
         <div id="consentQuick" class="opt" data-variant="dark" data-toggle="true">
           Yes—text me my Quick Result + 1–2 right-fit options.
@@ -166,9 +187,9 @@ textarea.input{min-height:110px;resize:vertical}
     </div>
 
     <div class="card">
-      <h3>8) Consent</h3>
+      <h3>9) Consent</h3>
       <div class="row">
-        <div id="consentBook" class="opt" data-variant="dark" data-toggle="true">Contact me about my 15-min checkup</div>
+        <div id="consentBook" class="opt" data-variant="dark" data-toggle="true" data-selected="true">Contact me about my 15-min checkup</div>
         <div id="consentPromo" class="opt" data-toggle="true">Optional: Join our Financial Wellness Newsletter</div>
       </div>
     </div>
@@ -198,6 +219,7 @@ textarea.input{min-height:110px;resize:vertical}
       <div class="kv"><div class="small">Priority</div><div id="r-prio"></div></div>
       <div class="kv"><div class="small">Current Cover</div><div id="r-cover"></div></div>
       <div class="kv"><div class="small">Budget Guide</div><div id="r-budget"></div></div>
+      <div class="kv"><div class="small">Age</div><div id="r-age"></div></div>
       <div class="kv"><div class="small">Next Step</div><div id="r-slot"></div></div>
       <div class="kv"><div class="small">Send via</div><div id="r-send"></div></div>
       <div class="kv"><div class="small">Advisor Notes</div><div id="r-notes"></div></div>
@@ -213,17 +235,11 @@ textarea.input{min-height:110px;resize:vertical}
       <button id="btnNew" class="button warn">New Checkup</button>
     </div>
 
-    <!-- print-only -->
+    <!-- PRINT-ONLY -->
     <div id="resultToPrint">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
-          <div style="font-weight:800;font-size:18px">Quick Financial Safety Check</div>
-          <div class="small" id="printMeta"></div>
-        </div>
-        <div style="text-align:right">
-          <div class="small" id="printAdvisor"></div>
-          <div class="small" id="printEvent"></div>
-        </div>
+      <div>
+        <div style="font-weight:800;font-size:18px">Quick Financial Safety Check</div>
+        <div class="small" id="printMeta"></div>
       </div>
       <hr style="margin:10px 0;border:0;border-top:1px solid #e5e7eb">
       <div id="printBody"></div>
@@ -238,27 +254,12 @@ textarea.input{min-height:110px;resize:vertical}
       <div class="small mt12">Stored locally on this device.</div>
     </div>
   </section>
-
-  <!-- SETTINGS -->
-  <section id="tab-settings" class="hide">
-    <div class="card">
-      <h3>Settings</h3>
-      <div class="row grid-2">
-        <div><div class="label">Advisor name</div><input id="s-advisor" class="input" placeholder="Your name" /></div>
-        <div><div class="label">Event Code</div><input id="s-event" class="input" placeholder="e.g., MDC-0910-AM" /></div>
-      </div>
-      <div class="actions mt16">
-        <button id="btnSaveSettings" class="button primary">Save Settings</button>
-      </div>
-      <div class="small" id="settingsWarn"></div>
-    </div>
-  </section>
 </main>
 
 <nav class="nav no-print">
-  <div class="tab" id="nav-new" data-active="true">New Checkup</div>
+  <div class="tab" id="nav-new">New Checkup</div>
   <div class="tab" id="nav-history">History</div>
-  <div class="tab" id="nav-settings">Settings</div>
+  <div class="tab" id="nav-settings" data-active="true">Settings</div>
 </nav>
 
 <script>
@@ -282,93 +283,106 @@ const suggestByPriority=p=>{
   }
 };
 
-let state={name:'',mobile:'',role:'',breadwinner:'',priority:'',cover:'',budget:'',slot:'',
-           consentQuick:false,consentBook:false,consentPromo:false,channels:[],notes:''};
+let state={name:'',mobile:'',role:'',breadwinner:'',priority:'',cover:'',budget:'',age:'',slot:'',
+           consentQuick:false,consentBook:true,consentPromo:false,channels:[],notes:''};
 const STORAGE_KEY='qfs_surveys_v1';
 const SETTINGS_KEY='qfs_settings_v1';
 
-function initOptionGroups(){
-  ['role','breadwinner','priority','cover','budget','slot'].forEach(group=>{
-    const box=document.querySelector(`[data-group="${group}"]`);
-    box&&box.addEventListener('click',e=>{
-      const opt=e.target.closest('.opt'); if(!opt)return;
-      $$('.opt',box).forEach(x=>x.dataset.selected="false");
-      opt.dataset.selected="true"; state[group]=opt.dataset.value;
-    });
-  });
-  const ch=document.querySelector('[data-group="channels"]');
-  ch.addEventListener('click',e=>{
-    const opt=e.target.closest('.opt'); if(!opt)return;
-    const v=opt.dataset.value; const sel=opt.dataset.selected==="true";
-    opt.dataset.selected=sel?"false":"true";
-    state.channels= sel ? state.channels.filter(x=>x!==v) : [...new Set([...state.channels,v])];
-  });
-  ['consentQuick','consentBook','consentPromo'].forEach(id=>{
-    $('#'+id).addEventListener('click',e=>{
-      const el=e.currentTarget; const on=el.dataset.selected==="true";
-      el.dataset.selected=on?"false":"true"; state[id.replace('consent','consent')]=!on;
-      if(id==='consentBook') state.consentBook=!on;
-      if(id==='consentQuick') state.consentQuick=!on;
-      if(id==='consentPromo') state.consentPromo=!on;
-    });
-  });
-}
-initOptionGroups();
-
 /* Tabs */
-function showTab(key){
+function setActiveTab(key){
   ['new','history','settings','result'].forEach(k=>{
     const sec=$(`#tab-${k}`); if(sec) sec.classList.toggle('hide',k!==key);
     const tab=$(`#nav-${k}`); if(tab) tab.dataset.active=(k===key);
   });
   if(key==='history') renderHistory();
 }
-$('#nav-new').onclick=()=>!tabsLocked && showTab('new');
-$('#nav-history').onclick=()=>!tabsLocked && showTab('history');
-$('#nav-settings').onclick=()=>showTab('settings');
-$('#btnSettingsOpen').onclick=()=>showTab('settings');
+let tabsLocked=true;
+function lockTabs(lock){
+  tabsLocked=lock;
+  ['nav-new','nav-history'].forEach(id=>$('#'+id).classList.toggle('disabled',lock));
+}
+$('#nav-new').onclick=()=>{ if(!tabsLocked) setActiveTab('new'); };
+$('#nav-history').onclick=()=>{ if(!tabsLocked) setActiveTab('history'); };
+$('#nav-settings').onclick=()=> setActiveTab('settings');
+$('#btnSettingsOpen').onclick=()=> setActiveTab('settings');
 
 /* Settings */
 function loadSettings(){
   const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
   $('#s-advisor').value=s.advisor||'';
   $('#s-event').value=s.eventCode||'';
+  $('#s-advisorPhone').value=s.advisorPhone||'';
 }
 function getSettings(){
-  return {advisor:$('#s-advisor').value.trim(), eventCode:$('#s-event').value.trim()};
+  return {
+    advisor: $('#s-advisor').value.trim(),
+    eventCode: $('#s-event').value.trim(),
+    advisorPhone: $('#s-advisorPhone').value.trim()
+  };
+}
+function enforceSettingsGate(){
+  const s=getSettings();
+  const ok=!!(s.advisor && s.eventCode);
+  lockTabs(!ok);
+  if(!ok) setActiveTab('settings');
 }
 $('#btnSaveSettings').onclick=()=>{
   const s=getSettings();
   if(!s.advisor || !s.eventCode){
     $('#settingsWarn').textContent='Advisor name and Event Code are required.';
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-    enforceSettingsGate(); // keep locked
+    enforceSettingsGate();
     return;
   }
   $('#settingsWarn').textContent='Saved.';
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
   enforceSettingsGate();
+  if(!tabsLocked) setActiveTab('new');
 };
-loadSettings();
+loadSettings(); enforceSettingsGate();
 
-/* Gatekeeping */
-let tabsLocked=true;
-function enforceSettingsGate(){
-  const s=getSettings();
-  const ok=!!(s.advisor && s.eventCode);
-  tabsLocked=!ok;
-  ['nav-new','nav-history'].forEach(id=>$('#'+id).classList.toggle('disabled',!ok));
-  if(!ok){ showTab('settings'); }
+/* Option groups */
+function initOptionGroups(){
+  ['role','breadwinner','priority','cover','budget','age','slot'].forEach(group=>{
+    const box=document.querySelector(`[data-group="${group}"]`);
+    box && box.addEventListener('click',e=>{
+      const opt=e.target.closest('.opt'); if(!opt) return;
+      $$('.opt',box).forEach(x=>x.dataset.selected="false");
+      opt.dataset.selected="true"; state[group]=opt.dataset.value;
+    });
+  });
+  const ch=document.querySelector('[data-group="channels"]');
+  ch.addEventListener('click',e=>{
+    const opt=e.target.closest('.opt'); if(!opt) return;
+    const v=opt.dataset.value; const sel=opt.dataset.selected==="true";
+    opt.dataset.selected=sel?"false":"true";
+    state.channels = sel ? state.channels.filter(x=>x!==v) : [...new Set([...state.channels,v])];
+  });
+  // Toggles
+  $('#consentQuick').addEventListener('click',e=>{
+    const el=e.currentTarget; const on=el.dataset.selected==="true";
+    el.dataset.selected=on?"false":"true"; state.consentQuick=!on;
+  });
+  $('#consentBook').addEventListener('click',e=>{
+    const el=e.currentTarget; const on=el.dataset.selected==="true";
+    el.dataset.selected=on?"false":"true"; state.consentBook=!on;
+  });
+  $('#consentPromo').addEventListener('click',e=>{
+    const el=e.currentTarget; const on=el.dataset.selected==="true";
+    el.dataset.selected=on?"false":"true"; state.consentPromo=!on;
+  });
 }
-enforceSettingsGate();
+initOptionGroups();
 
 /* Form */
 function clearForm(){
-  state={name:'',mobile:'',role:'',breadwinner:'',priority:'',cover:'',budget:'',slot:'',
-         consentQuick:false,consentBook:false,consentPromo:false,channels:[],notes:''};
+  state={name:'',mobile:'',role:'',breadwinner:'',priority:'',cover:'',budget:'',age:'',slot:'',
+         consentQuick:false,consentBook:true,consentPromo:false,channels:[],notes:''};
   $('#clientName').value=''; $('#clientMobile').value=''; $('#notes').value='';
   $$('[data-group]').forEach(g=>$$('.opt',g).forEach(o=>o.dataset.selected="false"));
-  ['consentQuick','consentBook','consentPromo'].forEach(id=>$('#'+id).dataset.selected="false");
+  $('#consentBook').dataset.selected="true";
+  $('#consentQuick').dataset.selected="false";
+  $('#consentPromo').dataset.selected="false";
   $('#validation').textContent='';
 }
 $('#btnClear').onclick=clearForm;
@@ -380,40 +394,36 @@ function readFormBasics(){
 }
 function validate(){
   readFormBasics();
-  const s=getSettings();
-  const errors=[];
-  if(!s.advisor || !s.eventCode) errors.push('Complete Settings (Advisor name + Event Code). ');
-  if(!state.name) errors.push('Please enter the client name. ');
-  if(!state.priority) errors.push('Select a priority. ');
-  if(state.consentQuick && !state.mobile) errors.push('Mobile number is required if sending result. ');
-  if(state.consentQuick && state.channels.length===0) errors.push('Pick at least one channel (SMS / Viber). ');
-  if(state.consentBook===false) errors.push('Booking consent is required.');
-  $('#validation').textContent=errors.join('');
-  return errors.length===0;
+  const s=getSettings(); const errs=[];
+  if(!s.advisor || !s.eventCode) errs.push('Complete Settings (Advisor name + Event Code). ');
+  if(!state.name) errs.push('Please enter the client name. ');
+  if(!state.priority) errs.push('Select a priority. ');
+  if(state.consentQuick && !state.mobile) errs.push('Mobile is required if sending result. ');
+  if(state.consentQuick && state.channels.length===0) errs.push('Pick at least one channel (SMS/Viber). ');
+  if(!state.consentBook) errs.push('Please allow contact for the 15-min checkup.');
+  $('#validation').textContent=errs.join('');
+  return errs.length===0;
 }
+
 $('#btnSubmit').onclick=()=>{
   if(!validate()) return;
-  const now=new Date();
-  const id='QFS-'+now.getTime();
+  const now=new Date(); const id='QFS-'+now.getTime();
   const record={...state,id,createdAt:now.toISOString(),settings:getSettings()};
   const all=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); all.unshift(record);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-  renderResult(record); showTab('result');
+  renderResult(record); setActiveTab('result');
 };
 
+/* History */
 function renderHistory(){
   const wrap=$('#historyList'); wrap.innerHTML='';
   const all=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
   if(all.length===0){ wrap.innerHTML='<div class="small">No records yet.</div>'; return; }
   all.forEach(rec=>{
     const el=document.createElement('div');
-    el.style.border='1.5px solid var(--line)';
-    el.style.borderRadius='14px';
-    el.style.padding='12px 14px';
-    el.style.background='#fff';
-    el.style.display='flex';
-    el.style.justifyContent='space-between';
-    el.style.alignItems='flex-start';      /* no extra indent before name */
+    el.style.border='1.5px solid var(--line)'; el.style.borderRadius='14px';
+    el.style.padding='12px 14px'; el.style.background='#fff';
+    el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='flex-start';
     el.innerHTML=`
       <div>
         <div><strong>${rec.name || '(No name)'}</strong> · <span class="small">${rec.priority||'-'}</span></div>
@@ -425,10 +435,8 @@ function renderHistory(){
         <button class="button warn" data-id="${rec.id}" data-action="delete">Delete</button>
       </div>
     `;
-    el.querySelector('[data-action="view"]').onclick=()=>{ renderResult(rec); showTab('result'); };
-    el.querySelector('[data-action="delete"]').onclick=()=>{
-      if(confirm('Delete this entry?')){ deleteRecord(rec.id); renderHistory(); }
-    };
+    el.querySelector('[data-action="view"]').onclick=()=>{ renderResult(rec); setActiveTab('result'); };
+    el.querySelector('[data-action="delete"]').onclick=()=>{ if(confirm('Delete this entry?')){ deleteRecord(rec.id); renderHistory(); } };
     wrap.appendChild(el);
   });
 }
@@ -440,36 +448,57 @@ function deleteRecord(id){
 /* Result & Print */
 function renderResult(rec){
   const s=rec.settings||{};
-  $('#resultMeta').textContent = `${fmtDateTime(rec.createdAt)}${s.eventCode ? ' • ' + s.eventCode : ''}`;
+  $('#resultMeta').textContent=`${fmtDateTime(rec.createdAt)}${s.eventCode?' • '+s.eventCode:''}`;
   $('#r-client').textContent=`${rec.name}${rec.mobile?' • '+rec.mobile:''}`;
   $('#r-role').textContent=rec.role||'-';
   $('#r-bw').textContent=rec.breadwinner||'-';
   $('#r-prio').textContent=rec.priority||'-';
   $('#r-cover').textContent=rec.cover||'-';
   $('#r-budget').textContent=(rec.budget||'-')+'  ·  '+toMonthly(rec.budget||'');
+  $('#r-age').textContent=rec.age||'-';
   $('#r-slot').textContent=rec.slot||'-';
   $('#r-send').textContent=rec.consentQuick?(rec.channels.join(', ')||'-'):'— not requested';
   $('#r-notes').textContent=rec.notes||'—';
   $('#r-suggestion').textContent=suggestByPriority(rec.priority||'');
 
+  // PRINT body (single layout)
   $('#printMeta').textContent=`${fmtDateTime(rec.createdAt)}${s.eventCode?' • '+s.eventCode:''}`;
-  $('#printAdvisor').textContent=s.advisor?`Advisor: ${s.advisor}`:'';
-  $('#printEvent').textContent='';
-  $('#printBody').innerHTML=`
-    <div style="margin:6px 0"><strong>Client:</strong> ${rec.name}${rec.mobile?' · '+rec.mobile:''}</div>
-    <div style="margin:6px 0"><strong>Role:</strong> ${rec.role||'-'} · <strong>Breadwinner:</strong> ${rec.breadwinner||'-'}</div>
-    <div style="margin:6px 0"><strong>Priority:</strong> ${rec.priority||'-'}</div>
-    <div style="margin:6px 0"><strong>Current Cover:</strong> ${rec.cover||'-'}</div>
-    <div style="margin:6px 0"><strong>Budget Guide:</strong> ${rec.budget||'-'} (${toMonthly(rec.budget||'')})</div>
-    <div style="margin:6px 0"><strong>Next Step:</strong> ${rec.slot||'-'}</div>
-    <div style="margin:6px 0"><strong>Send via:</strong> ${rec.consentQuick?(rec.channels.join(', ')||'-'):'not requested'}</div>
-    <div style="margin:6px 0"><strong>Advisor Notes:</strong> ${rec.notes||'—'}</div>
-    <hr style="border:0;border-top:1px solid #e5e7eb;margin:12px 0">
-    <div><strong>Suggested Direction:</strong> ${suggestByPriority(rec.priority||'')}</div>
-  `;
+  const lines=[
+    `<div style="margin:6px 0"><strong>Client:</strong> ${rec.name}${rec.mobile?' · '+rec.mobile:''}</div>`,
+    `<div style="margin:6px 0"><strong>Role:</strong> ${rec.role||'-'} · <strong>Breadwinner:</strong> ${rec.breadwinner||'-'}</div>`,
+    `<div style="margin:6px 0"><strong>Priority:</strong> ${rec.priority||'-'}</div>`,
+    `<div style="margin:6px 0"><strong>Current Cover:</strong> ${rec.cover||'-'}</div>`,
+    `<div style="margin:6px 0"><strong>Budget Guide:</strong> ${rec.budget||'-'} (${toMonthly(rec.budget||'')})</div>`,
+    `<div style="margin:6px 0"><strong>Age:</strong> ${rec.age||'-'}</div>`,
+    `<div style="margin:6px 0"><strong>Next Step:</strong> ${rec.slot||'-'}</div>`,
+    `<div style="margin:6px 0"><strong>Send via:</strong> ${rec.consentQuick?(rec.channels.join(', ')||'-'):'not requested'}</div>`,
+    `<div style="margin:6px 0"><strong>Advisor Notes:</strong> ${rec.notes||'—'}</div>`,
+    `<hr style="border:0;border-top:1px solid #e5e7eb;margin:12px 0">`,
+    `<div><strong>Suggested Direction:</strong> ${suggestByPriority(rec.priority||'')}</div>`
+  ];
+
+  // Contact block
+  let contact = '';
+  const name = s.advisor || '';
+  const phone = s.advisorPhone || '';
+  if (name || phone) {
+    contact = `
+      <div style="margin-top:16px">
+        <div style="font-weight:700">For more information, you can contact me:</div>
+        <div style="margin-top:6px;white-space:pre-line">
+${name ? name : ''}${name ? '\n' : ''}Financial Advisor
+${phone ? '\n'+phone : ''}
+8/F AIA Salcedo Bldg.,
+126 L.P. Leviste St.,
+Salcedo Village, Makati City
+        </div>
+      </div>`;
+  }
+  $('#printBody').innerHTML = lines.join('') + contact;
 }
+
 $('#btnPrint').onclick=()=>window.print();
-$('#btnNew').onclick=()=>{ clearForm(); showTab('new'); };
+$('#btnNew').onclick=()=>{ clearForm(); setActiveTab('new'); };
 $('#btnShare').onclick=async()=>{
   const all=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); if(!all.length)return;
   const s=all[0];
@@ -477,8 +506,8 @@ $('#btnShare').onclick=async()=>{
   try{ if(navigator.share) await navigator.share({title:'Quick Result',text}); else { await navigator.clipboard.writeText(text); alert('Copied to clipboard.'); } }catch(e){}
 };
 
-/* Start on Settings if required */
-document.addEventListener('DOMContentLoaded',()=>{ enforceSettingsGate(); if(tabsLocked) showTab('settings'); });
+/* Boot */
+document.addEventListener('DOMContentLoaded',()=>{ setActiveTab('settings'); enforceSettingsGate(); });
 </script>
 </body>
 </html>
