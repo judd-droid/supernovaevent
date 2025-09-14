@@ -123,11 +123,10 @@ textarea.input{min-height:110px;resize:vertical}
     <div class="card">
       <h3>3) Priority <span class="badge">pick one</span></h3>
       <div class="row grid-2" data-group="priority">
-        <div class="opt" data-value="Income protection">Income protection</div>
-        <div class="opt" data-value="Critical illness">Critical illness</div>
-        <div class="opt" data-value="Savings/Wealth">Savings/Wealth</div>
-        <div class="opt" data-value="Hospital income">Hospital income</div>
-        <div class="opt" data-value="Child education">Child education</div>
+        <div class="opt" data-value="Life Insurance">Life Insurance</div>
+        <div class="opt" data-value="Critical Illness">Critical Illness</div>
+        <div class="opt" data-value="Retirement/Long-Term Savings">Retirement/Long-Term Savings</div>
+        <div class="opt" data-value="Child Education">Child Education</div>
       </div>
     </div>
 
@@ -143,12 +142,12 @@ textarea.input{min-height:110px;resize:vertical}
 
     <div class="card">
       <h3>5) Comfortable budget</h3>
-      <div class="row grid-2" data-group="budget">
-        <div class="opt" data-value="₱20–₱40/day">₱20–₱40/day</div>
-        <div class="opt" data-value="₱50–₱80/day">₱50–₱80/day</div>
-        <div class="opt" data-value="₱100+/day">₱100+/day</div>
-        <div class="opt" data-value="Not sure">Not sure</div>
-      </div>
+        <div class="row grid-2" data-group="budget">
+          <div class="opt" data-value="₱20–₱50/day">₱20–₱50/day</div>
+          <div class="opt" data-value="₱50–₱100/day">₱50–₱100/day</div>
+          <div class="opt" data-value="₱100+/day">₱100+/day</div>
+          <div class="opt" data-value="Not Sure">Not Sure</div>
+        </div>
       <div class="small">Tip: 30 days ≈ monthly. Example: ₱20/day ≈ ₱600/month.</div>
     </div>
 
@@ -176,7 +175,7 @@ textarea.input{min-height:110px;resize:vertical}
       <h3>8) Where should we send your Quick Result?</h3>
       <div class="row">
         <div id="consentQuick" class="opt" data-variant="dark" data-toggle="true">
-          Yes—text me my Quick Result + 1–2 right-fit options.
+          Yes, send me my Quick Result and option/s.
           <span class="small">(Max 3 helpful messages, no spam. Stop anytime.)</span>
         </div>
       </div>
@@ -266,20 +265,26 @@ textarea.input{min-height:110px;resize:vertical}
 const $=(s,d=document)=>d.querySelector(s);
 const $$=(s,d=document)=>Array.from(d.querySelectorAll(s));
 const fmtDateTime=d=>new Date(d).toLocaleString([], {year:'numeric',month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
-const toMonthly=label=>{
-  if(label.includes('₱20'))return'≈ ₱600–₱1,200 / month';
-  if(label.includes('₱50'))return'≈ ₱1,500–₱2,400 / month';
-  if(label.includes('₱100'))return'≈ ₱3,000+ / month';
-  return'We’ll compute together based on your goals.';
+
+const toMonthly = (label) => {
+  if (label.includes('₱20') && label.includes('₱50')) return '≈ ₱600–₱1,500 / month';
+  if (label.includes('₱50') && label.includes('₱100')) return '≈ ₱1,500–₱3,000 / month';
+  if (label.includes('₱100')) return '≈ ₱3,000+ / month';
+  return 'We’ll compute together based on your goals.';
 };
-const suggestByPriority=p=>{
-  switch(p){
-    case 'Income protection': return 'Start with income replacement (~10× annual income) using a term/VUL life plan. Add waiver-of-premium and accidental riders as needed.';
-    case 'Critical illness': return 'Build a lump-sum CI cover for major illnesses + recovery time. Consider early-stage CI rider and income benefit.';
-    case 'Savings/Wealth': return 'Use a disciplined savings/wealth plan (VUL or endowment) matched to your timeframe. Automate contributions; review yearly.';
-    case 'Hospital income': return 'Add a daily hospital income plan as cash buffer (works with HMO). Target ≥ 2–3× daily room rate.';
-    case 'Child education': return 'Create a college fund schedule (target tuition x years). Use education/endowment plan + protection on the payer.';
-    default: return 'We’ll tailor a right-fit mix based on your answers.';
+
+const suggestByPriority = (p) => {
+  switch (p) {
+    case 'Life Insurance':
+      return 'Start with income replacement (~10× annual income) using a term/VUL life plan. Add waiver-of-premium and accidental riders as needed.';
+    case 'Critical Illness':
+      return 'Build a lump-sum CI cover for major illnesses + recovery time. Consider early-stage CI rider and income benefit.';
+    case 'Retirement/Long-Term Savings':
+      return 'Set up a disciplined retirement/long-term savings plan aligned to your target age and horizon. Automate contributions; review yearly.';
+    case 'Child Education':
+      return 'Create a college fund schedule (target tuition × years). Use an education/endowment plan plus protection on the payer.';
+    default:
+      return 'We’ll tailor a right-fit mix based on your answers.';
   }
 };
 
