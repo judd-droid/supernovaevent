@@ -10,7 +10,18 @@
   --sn-red:#DD467D; --sn-black:#111827; --sn-gray:#6b7280;
   --bg:#f8fafc; --card:#ffffff; --line:#e5e7eb; --radius:18px;
   --sel-bg:#ffe8f1;
+  --ok:#16a34a;               /* green-600 */
+  --sel-green-bg:#e9f9ef;     /* light green fill */
 }
+
+/* Selected state for green variant */
+.opt[data-variant="green"][data-selected="true"]{
+  background:var(--sel-green-bg);
+  border-color:var(--ok);
+  box-shadow:0 0 0 3px rgba(22,163,74,.12);
+  color:#064e3b; /* readable on light green */
+}
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--sn-black);background:linear-gradient(180deg,#fff,#f5f7fb)}
@@ -174,7 +185,7 @@ textarea.input{min-height:110px;resize:vertical}
     <div class="card">
       <h3>8) Where should we send your Quick Result?</h3>
       <div class="row">
-        <div id="consentQuick" class="opt" data-variant="dark" data-toggle="true">
+        <div id="consentQuick" class="opt" data-variant="green" data-toggle="true">
           Yes, send me my Quick Result and option/s.
         </div>
       </div>
@@ -187,7 +198,9 @@ textarea.input{min-height:110px;resize:vertical}
     <div class="card">
       <h3>9) Consent</h3>
       <div class="row">
-        <div id="consentBook" class="opt" data-variant="dark" data-toggle="true" data-selected="true">Contact me about my 15-min checkup</div>
+        <div id="consentBook" class="opt" data-variant="green" data-toggle="true" data-selected="true">
+          Contact me about my 15-min checkup
+        </div>
         <div id="consentPromo" class="opt" data-toggle="true">Optional: Join our Financial Wellness Newsletter</div>
       </div>
     </div>
