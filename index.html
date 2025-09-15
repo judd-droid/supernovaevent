@@ -494,7 +494,10 @@ function renderResult(rec){
   const contactLines = [];
   if (s.advisor) contactLines.push(`${s.advisor}`);
   contactLines.push('Financial Advisor');
-  if (s.advisorPhone) contactLines.push(s.advisorPhone);
+  if (s.advisorPhone) {            // add a blank line before the number
+    contactLines.push('');
+    contactLines.push(s.advisorPhone);
+  }
   contactLines.push(
     '8/F AIA Salcedo Bldg.,\n' +
     '126 L.P. Leviste St.,\n' +
