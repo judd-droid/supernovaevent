@@ -137,7 +137,7 @@ textarea.input{min-height:110px;resize:vertical}
         <div class="opt" data-value="Life Insurance">Life Insurance</div>
         <div class="opt" data-value="Critical Illness">Critical Illness</div>
         <div class="opt" data-value="Retirement/Long-Term Savings">Retirement/Long-Term Savings</div>
-        <div class="opt" data-value="Child Education">Child Education</div>
+        <div class="opt" data-value="College Funding for Kids">College Funding for Kids</div>
       </div>
     </div>
 
@@ -287,14 +287,21 @@ const toMonthly = (label) => {
 
 const suggestByPriority = (p) => {
   switch (p) {
-    case 'Life Insurance':
-      return 'Start with income replacement (~10× annual income) using a term/VUL life plan. Add waiver-of-premium and accidental riders as needed.';
-    case 'Critical Illness':
-      return 'Build a lump-sum CI cover for major illnesses + recovery time. Consider early-stage CI rider and income benefit.';
     case 'Retirement/Long-Term Savings':
-      return 'Set up a disciplined retirement/long-term savings plan aligned to your target age and horizon. Automate contributions; review yearly.';
-    case 'Child Education':
-      return 'Create a college fund schedule (target tuition × years). Use an education/endowment plan plus protection on the payer.';
+      return `Future Protect is a variable unit-linked (VUL) plan that adapts to your life. Each premium you pay buys life insurance and invests the remainder into professionally managed funds aligned with your risk appetite—conservative, balanced or aggressive. You can increase payments when times are good or reduce them when budgets are tight, even taking a premium holiday if needed. An accident rider may be attached. Because your coverage and investment are intertwined, the plan evolves with you, helping you build wealth while ensuring your family’s financial safety net.
+
+What makes this plan good for retirement planning is that you can choose the age of retirement (50, 55, 60, or 65) which will also become the maturity of the plan. By the time the plan matures, you can transfer it into a facility that will distribute the funds for 10 years.`;
+
+    case 'College Funding for Kids':
+    case 'Child Education': // backwards-compat for older saved records
+      return `Future Scholar is a hybrid education plan created to ensure your child’s dreams don’t hinge on your health or finances. It has a portion that gives guaranteed returns, and a portion that is invested. You pay premiums for a limited period (5 years, or pay until the child is 17) and then, when your child reaches college age (18–21), the plan pays out guaranteed education benefits for four years. Should something happen to you, the plan continues—there is a payor’s benefit that waives remaining unpaid premiums, so your child still receives the full benefit. The investment portion allows the plan the opportunity to have better yield, which can be used to reinforce the guaranteed benefits, or as a graduation gift for the child. Parents choose Future Scholar because it offers certainty and peace of mind in an uncertain world where tuition fees keep rising.`;
+
+    case 'Critical Illness':
+      return `AIA Active Critical Protect 100 is a whole life critical illness plan that covers up to 100 major and minor illnesses, until age 100. It pays a lump sum upon diagnosis of early-detected or late-stage illnesses, so you can focus on recovery instead of finances. Integrated with AIA Vitality, it rewards healthy living with additional insurance coverage (+20% of face amount upon approval of the plan and can increase to a max of 50%). Optional riders include gender-specific cancer riders which give 50% of the face amount, and recovery benefit riders which give 10% of the face amount every year up to 5 years. Clients choose this plan to protect not just their life, but their lifestyle and independence when illness strikes.`;
+
+    case 'Life Insurance':
+      return `Guardian is an affordable term life plan designed to shield your loved ones from the financial shock of premature death and accidents. You have the option to choose a yearly renewable plan, or one that covers you until age 65. You can attach riders to provide additional coverage for accidents, critical illness, and daily hospital income. Guardian gives you the peace of mind that a single mishap won’t derail your family’s finances.`;
+
     default:
       return 'We’ll tailor a right-fit mix based on your answers.';
   }
