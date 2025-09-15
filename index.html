@@ -238,6 +238,9 @@ textarea.input{min-height:110px;resize:vertical}
       <div class="hr"></div>
       <div style="font-weight:700">Suggested Direction</div>
       <div id="r-suggestion" style="margin-top:6px"></div>
+      <div class="hr"></div>
+<div style="font-weight:700">For more information, contact your financial advisor:</div>
+<div id="r-contact" style="margin-top:6px; white-space:pre-line"></div>
     </div>
 
     <div class="actions no-print mt12">
@@ -471,54 +474,64 @@ function deleteRecord(id){
 
 /* Result & Print */
 function renderResult(rec){
-  const s=rec.settings||{};
-  $('#resultMeta').textContent=`${fmtDateTime(rec.createdAt)}${s.eventCode?' • '+s.eventCode:''}`;
-  $('#r-client').textContent=`${rec.name}${rec.mobile?' • '+rec.mobile:''}`;
-  $('#r-role').textContent=rec.role||'-';
-  $('#r-bw').textContent=rec.breadwinner||'-';
-  $('#r-prio').textContent=rec.priority||'-';
-  $('#r-cover').textContent=rec.cover||'-';
-  $('#r-budget').textContent=(rec.budget||'-')+'  ·  '+toMonthly(rec.budget||'');
-  $('#r-age').textContent=rec.age||'-';
-  $('#r-slot').textContent=rec.slot||'-';
-  $('#r-send').textContent=rec.consentQuick?(rec.channels.join(', ')||'-'):'— not requested';
-  $('#r-notes').textContent=rec.notes||'—';
-  $('#r-suggestion').textContent=suggestByPriority(rec.priority||'');
+  const s = rec.settings || {};
 
-  // PRINT body (single layout)
-  $('#printMeta').textContent=`${fmtDateTime(rec.createdAt)}${s.eventCode?' • '+s.eventCode:''}`;
-  const lines=[
-    `<div style="margin:6px 0"><strong>Client:</strong> ${rec.name}${rec.mobile?' · '+rec.mobile:''}</div>`,
-    `<div style="margin:6px 0"><strong>Role:</strong> ${rec.role||'-'} · <strong>Breadwinner:</strong> ${rec.breadwinner||'-'}</div>`,
-    `<div style="margin:6px 0"><strong>Priority:</strong> ${rec.priority||'-'}</div>`,
-    `<div style="margin:6px 0"><strong>Current Cover:</strong> ${rec.cover||'-'}</div>`,
-    `<div style="margin:6px 0"><strong>Budget Guide:</strong> ${rec.budget||'-'} (${toMonthly(rec.budget||'')})</div>`,
-    `<div style="margin:6px 0"><strong>Age:</strong> ${rec.age||'-'}</div>`,
-    `<div style="margin:6px 0"><strong>Next Step:</strong> ${rec.slot||'-'}</div>`,
-    `<div style="margin:6px 0"><strong>Send via:</strong> ${rec.consentQuick?(rec.channels.join(', ')||'-'):'not requested'}</div>`,
-    `<div style="margin:6px 0"><strong>Advisor Notes:</strong> ${rec.notes||'—'}</div>`,
+  // existing fields …
+  $('#resultMeta').textContent = `${fmtDateTime(rec.createdAt)}${s.eventCode ? ' • ' + s.eventCode : ''}`;
+  $('#r-client').textContent = `${rec.name}${rec.mobile ? ' • ' + rec.mobile : ''}`;
+  $('#r-role').textContent = rec.role || '-';
+  $('#r-bw').textContent = rec.breadwinner || '-';
+  $('#r-prio').textContent = rec.priority || '-';
+  $('#r-cover').textContent = rec.cover || '-';
+  $('#r-budget').textContent = (rec.budget || '-') + '  ·  ' + toMonthly(rec.budget || '');
+  $('#r-age').textContent = rec.age || '-';
+  $('#r-slot').textContent = rec.slot || '-';
+  $('#r-send').textContent = rec.consentQuick ? (rec.channels.join(', ') || '-') : '— not requested';
+  $('#r-notes').textContent = rec.notes || '—';
+  $('#r-suggestion').textContent = suggestByPriority(rec.priority || '');
+
+  // ----- Contact (screen) -----
+  const contactLines = [];
+  if (s.advisor) contactLines.push(`${s.advisor}`);
+  contactLines.push('Financial Advisor');
+  if (s.advisorPhone) contactLines.push(s.advisorPhone);
+  contactLines.push(
+    '8/F AIA Salcedo Bldg.,\n' +
+    '126 L.P. Leviste St.,\n' +
+    'Salcedo Village, Makati City'
+  );
+  $('#r-contact').textContent = contactLines.join('\n');
+
+  // ----- PRINT payload (single section) -----
+  $('#printMeta').textContent = `${fmtDateTime(rec.createdAt)}${s.eventCode ? ' • ' + s.eventCode : ''}`;
+  const bodyParts = [
+    `<div style="margin:6px 0"><strong>Client:</strong> ${rec.name}${rec.mobile ? ' · ' + rec.mobile : ''}</div>`,
+    `<div style="margin:6px 0"><strong>Role:</strong> ${rec.role || '-'} · <strong>Breadwinner:</strong> ${rec.breadwinner || '-'}</div>`,
+    `<div style="margin:6px 0"><strong>Priority:</strong> ${rec.priority || '-'}</div>`,
+    `<div style="margin:6px 0"><strong>Current Cover:</strong> ${rec.cover || '-'}</div>`,
+    `<div style="margin:6px 0"><strong>Budget Guide:</strong> ${rec.budget || '-'} (${toMonthly(rec.budget || '')})</div>`,
+    `<div style="margin:6px 0"><strong>Age:</strong> ${rec.age || '-'}</div>`,
+    `<div style="margin:6px 0"><strong>Next Step:</strong> ${rec.slot || '-'}</div>`,
+    `<div style="margin:6px 0"><strong>Send via:</strong> ${rec.consentQuick ? (rec.channels.join(', ') || '-') : 'not requested'}</div>`,
+    `<div style="margin:6px 0"><strong>Advisor Notes:</strong> ${rec.notes || '—'}</div>`,
     `<hr style="border:0;border-top:1px solid #e5e7eb;margin:12px 0">`,
-    `<div><strong>Suggested Direction:</strong> ${suggestByPriority(rec.priority||'')}</div>`
+    `<div><strong>Suggested Direction:</strong> ${suggestByPriority(rec.priority || '')}</div>`
   ];
 
-  // Contact block
-  let contact = '';
-  const name = s.advisor || '';
-  const phone = s.advisorPhone || '';
-  if (name || phone) {
-    contact = `
-      <div style="margin-top:16px">
-        <div style="font-weight:700">For more information, you can contact me:</div>
-        <div style="margin-top:6px;white-space:pre-line">
-${name ? name : ''}${name ? '\n' : ''}Financial Advisor
-${phone ? '\n'+phone : ''}
+  // contact block for print
+  const contactHTML = `
+    <div style="margin-top:16px">
+      <div style="font-weight:700">For more information, contact your financial advisor:</div>
+      <div style="margin-top:6px; white-space:pre-line">
+${s.advisor || ''}${s.advisor ? '\n' : ''}Financial Advisor
+${s.advisorPhone ? s.advisorPhone + '\n' : ''}
 8/F AIA Salcedo Bldg.,
 126 L.P. Leviste St.,
 Salcedo Village, Makati City
-        </div>
-      </div>`;
-  }
-  $('#printBody').innerHTML = lines.join('') + contact;
+      </div>
+    </div>`;
+
+  $('#printBody').innerHTML = bodyParts.join('') + contactHTML;
 }
 
 $('#btnPrint').onclick=()=>window.print();
