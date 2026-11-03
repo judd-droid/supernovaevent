@@ -6,7 +6,7 @@
 
 import type { SurveyResponse } from "@/lib/survey";
 
-export type Setup = { eventId: string; eventName: string; advisor: string };
+export type Setup = { eventId: string; eventName: string; survey?: string; advisor: string };
 
 const SETUP = "sv.setup";
 const PENDING = "sv.pending";

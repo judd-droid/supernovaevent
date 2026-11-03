@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const saved: string[] = [];
   for (const r of list) {
     if (!r?.id || !r.eventId || !r.advisor || !r.answers) continue;
-    const data = { eventName: r.eventName, answers: r.answers, contact: r.contact, consent: !!r.consent };
+    const data = { eventName: r.eventName, survey: r.survey, answers: r.answers, contact: r.contact, consent: !!r.consent };
     await sql`INSERT INTO responses (id, event_id, advisor, data, created_at)
               VALUES (${r.id}, ${r.eventId}, ${r.advisor}, ${JSON.stringify(data)}::jsonb, ${r.createdAt})
               ON CONFLICT (id) DO NOTHING`;

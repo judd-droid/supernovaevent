@@ -6,7 +6,13 @@ import { SetupScreen } from "@/components/SetupScreen";
 import { SurveyForm } from "@/components/SurveyForm";
 import { ResultScreen } from "@/components/ResultScreen";
 import { getMobile, getSetup, pendingCount, queue, saveSetup, sentToday, sync, type Setup } from "@/lib/device";
+import { DEFAULT_SURVEY, type SurveyId } from "@/lib/surveys";
 import type { SurveyResponse } from "@/lib/survey";
+
+// The form for each survey variant in src/lib/surveys.ts.
+const FORMS: Record<SurveyId, typeof SurveyForm> = {
+  "fws-2026-10": SurveyForm,
+};
 
 export default function Home() {
   const [setup, setSetup] = useState<Setup | null | undefined>(undefined);
@@ -32,6 +38,13 @@ export default function Home() {
     setSetup(s);
     refresh(s);
     trySync();
+    // Pick up a survey variant changed in admin after this device chose the event.
+    if (s) {
+      fetch("/api/setup").then((r) => r.json()).then((d: { events?: { id: string; survey: string }[] }) => {
+        const ev = d.events?.find((e) => e.id === s.eventId);
+        if (ev && ev.survey !== s.survey) { const next = { ...s, survey: ev.survey }; saveSetup(next); setSetup(next); }
+      }).catch(() => {});
+    }
     const t = setInterval(trySync, 30_000);
     window.addEventListener("online", trySync);
     return () => { clearInterval(t); window.removeEventListener("online", trySync); };
@@ -46,6 +59,9 @@ export default function Home() {
         onDone={(s) => { saveSetup(s); setSetup(s); setChanging(null); setDone(null); setFormKey((k) => k + 1); refresh(s); }} />
     );
   }
+
+  const survey = (setup.survey && setup.survey in FORMS ? setup.survey : DEFAULT_SURVEY) as SurveyId;
+  const Form = FORMS[survey];
 
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-16 md:px-8">
@@ -70,9 +86,9 @@ export default function Home() {
         <ResultScreen response={done} advisorMobile={getMobile(done.advisor)}
           onNext={() => { setDone(null); setFormKey((k) => k + 1); window.scrollTo(0, 0); }} />
       ) : (
-        <SurveyForm key={formKey} onSubmit={(answers, contact, consent) => {
+        <Form key={formKey} onSubmit={(answers, contact, consent) => {
           const r: SurveyResponse = {
-            id: crypto.randomUUID(), eventId: setup.eventId, eventName: setup.eventName, advisor: setup.advisor,
+            id: crypto.randomUUID(), eventId: setup.eventId, eventName: setup.eventName, survey, advisor: setup.advisor,
             answers, contact: consent ? contact : { ...contact, name: "", mobile: "", birthDate: "" }, consent,
             createdAt: new Date().toISOString(),
           };

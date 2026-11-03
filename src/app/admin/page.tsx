@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Plus } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
+import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
 
-type Ev = { id: string; name: string; date: string | null; venue: string; active: boolean; responses: number };
+type Ev = { id: string; name: string; date: string | null; venue: string; active: boolean; survey: string; responses: number };
 type Row = {
   id: string; event_id: string; advisor: string; created_at: string; reassigned_from: string | null;
   data: { eventName?: string; answers: Answers; contact: Contact; consent: boolean };
@@ -26,6 +27,7 @@ export default function Admin() {
   const [venue, setVenue] = useState("");
   const [date, setDate] = useState("");
   const [name, setName] = useState("");
+  const [survey, setSurvey] = useState<string>(DEFAULT_SURVEY);
   const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -82,7 +84,7 @@ export default function Admin() {
 
       <section className="mt-6">
         <h2 className="font-display text-lg font-semibold">Events</h2>
-        <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[1fr_180px_1fr_auto] md:items-end">
+        <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[1fr_170px_1fr_1fr_auto] md:items-end">
           <label className="text-sm text-muted">Venue
             <input value={venue} onChange={(e) => { setVenue(e.target.value); setName(suggestName(e.target.value, date)); }}
               placeholder="San Beda" className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-3 text-foreground" />
@@ -95,7 +97,13 @@ export default function Admin() {
             <input value={name} onChange={(e) => setName(e.target.value)}
               className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-3 text-foreground" />
           </label>
-          <button onClick={() => { saveEvent({ name, date, venue }); setVenue(""); setDate(""); setName(""); }} disabled={!name.trim()}
+          <label className="text-sm text-muted">Survey
+            <select value={survey} onChange={(e) => setSurvey(e.target.value)}
+              className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-2 text-foreground">
+              {SURVEYS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+            </select>
+          </label>
+          <button onClick={() => { saveEvent({ name, date, venue, survey }); setVenue(""); setDate(""); setName(""); }} disabled={!name.trim()}
             className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg bg-foreground px-4 font-medium text-white disabled:opacity-40">
             <Plus size={16} /> Add event
           </button>
@@ -106,8 +114,14 @@ export default function Admin() {
               <div key={e.id} className="flex items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{e.name}</div>
-                  <div className="text-sm text-muted">{e.responses} surveys · {e.active ? "Open to advisors" : "Closed"}</div>
+                  <div className="text-sm text-muted">{surveyLabel(e.survey)} · {e.responses} surveys · {e.active ? "Open to advisors" : "Closed"}</div>
                 </div>
+                {SURVEYS.length > 1 && (
+                  <select value={e.survey} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, survey: x.target.value })}
+                    className="h-9 rounded-lg border border-line bg-white px-2 text-sm">
+                    {SURVEYS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                )}
                 <button onClick={() => saveEvent({ id: e.id, name: e.name, venue: e.venue, active: !e.active })}
                   className="h-9 rounded-full border border-line px-3 text-sm">{e.active ? "Close" : "Reopen"}</button>
               </div>

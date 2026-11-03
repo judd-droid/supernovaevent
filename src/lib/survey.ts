@@ -49,6 +49,7 @@ export type SurveyResponse = {
   id: string;
   eventId: string;
   eventName: string;
+  survey: string;
   advisor: string;
   answers: Answers;
   contact: Contact;

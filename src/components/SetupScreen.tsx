@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Search } from "lucide-react";
 import { getMobile, saveMobile, type Setup } from "@/lib/device";
 
-type Ev = { id: string; name: string; date: string | null; venue: string };
+type Ev = { id: string; name: string; date: string | null; venue: string; survey?: string };
 
 // Choose the event, then the advisor taking the surveys. `only` = "advisor" skips
 // straight to the name list (Switch advisor).
@@ -17,7 +17,7 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
   const [events, setEvents] = useState<Ev[] | null>(null);
   const [advisors, setAdvisors] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
-  const [event, setEvent] = useState<Ev | null>(current ? { id: current.eventId, name: current.eventName, date: null, venue: "" } : null);
+  const [event, setEvent] = useState<Ev | null>(current ? { id: current.eventId, name: current.eventName, date: null, venue: "", survey: current.survey } : null);
   const [step, setStep] = useState<"event" | "advisor">(only === "advisor" && current ? "advisor" : "event");
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState("");
@@ -38,7 +38,7 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
   const finish = () => {
     if (!event || !picked) return;
     saveMobile(picked, mobile.trim());
-    onDone({ eventId: event.id, eventName: event.name, advisor: picked });
+    onDone({ eventId: event.id, eventName: event.name, survey: event.survey, advisor: picked });
   };
 
   return (

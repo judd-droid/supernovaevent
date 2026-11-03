@@ -23,6 +23,8 @@ export async function db(): Promise<NeonQueryFunction<false, false> | null> {
     )`;
     // One row per survey. `advisor` is the Roster name of the owner; `data`
     // holds the answers, contact details and consent as the device sent them.
+    // Which survey variant the event uses (src/lib/surveys.ts).
+    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS survey text NOT NULL DEFAULT 'fws-2026-10'`;
     await sql`CREATE TABLE IF NOT EXISTS responses (
       id text PRIMARY KEY,
       event_id text NOT NULL,
