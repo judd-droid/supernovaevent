@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Check, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 import { getMobile, saveMobile, type Setup } from "@/lib/device";
 
 type Ev = { id: string; name: string; date: string | null; venue: string; survey?: string };
 
-// Choose the event, then the advisor taking the surveys. `only` = "advisor" skips
-// straight to the name list (Switch advisor).
+// Choose the event, then the advisor taking the surveys enters their agent code.
+// `only` = "advisor" skips straight to the code (Switch advisor).
 export function SetupScreen({ current, only, onDone, onCancel }: {
   current: Setup | null;
   only?: "advisor";
@@ -15,26 +15,33 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
   onCancel?: () => void;
 }) {
   const [events, setEvents] = useState<Ev[] | null>(null);
-  const [advisors, setAdvisors] = useState<string[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [event, setEvent] = useState<Ev | null>(current ? { id: current.eventId, name: current.eventName, date: null, venue: "", survey: current.survey } : null);
   const [step, setStep] = useState<"event" | "advisor">(only === "advisor" && current ? "advisor" : "event");
-  const [q, setQ] = useState("");
+  const [code, setCode] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [codeError, setCodeError] = useState("");
   const [picked, setPicked] = useState("");
   const [mobile, setMobile] = useState("");
 
   useEffect(() => {
     fetch("/api/setup").then((r) => r.json())
-      .then((d) => { setEvents(d.events ?? []); setAdvisors(d.advisors ?? []); setErrors(d.errors ?? []); })
+      .then((d) => { setEvents(d.events ?? []); setErrors(d.errors ?? []); })
       .catch(() => { setEvents([]); setErrors(["Couldn't reach the server. Check the internet connection."]); });
   }, []);
 
-  const shown = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return t ? advisors.filter((a) => a.toLowerCase().includes(t)) : advisors;
-  }, [advisors, q]);
-
-  const pick = (a: string) => { setPicked(a); setMobile(getMobile(a)); };
+  const lookUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChecking(true);
+    setCodeError("");
+    setPicked("");
+    const res = await fetch(`/api/advisor?code=${encodeURIComponent(code)}`).catch(() => null);
+    const d = res ? await res.json().catch(() => ({})) : {};
+    setChecking(false);
+    if (!res?.ok || !d.advisor) return setCodeError(d.error ?? "Couldn't reach the server. Check the internet connection.");
+    setPicked(d.advisor);
+    setMobile(getMobile(d.advisor));
+  };
   const finish = () => {
     if (!event || !picked) return;
     saveMobile(picked, mobile.trim());
@@ -76,22 +83,19 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
         <div className="mt-6">
           <p className="text-sm text-muted">Event: <b className="font-medium text-foreground">{event?.name}</b>{!only && (
             <button onClick={() => setStep("event")} className="ml-2 underline">Change</button>)}</p>
-          <label className="mt-4 flex h-12 items-center gap-2 rounded-lg border border-line bg-white px-3">
-            <Search size={17} className="text-muted" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your name" className="h-full flex-1 bg-transparent outline-none" />
-          </label>
-          <div className="mt-3 max-h-[45vh] divide-y divide-line overflow-y-auto rounded-xl border border-line bg-surface">
-            {shown.map((a) => (
-              <button key={a} onClick={() => pick(a)}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left ${picked === a ? "bg-accent-soft" : "active:bg-background"}`}>
-                <span>{a}</span>{picked === a && <Check size={18} className="text-accent" />}
-              </button>
-            ))}
-            {!shown.length && <p className="px-4 py-3 text-sm text-muted">No matching names.</p>}
-          </div>
+          <form onSubmit={lookUp} className="mt-4 flex gap-2">
+            <input value={code} onChange={(e) => { setCode(e.target.value); setPicked(""); }} inputMode="numeric" autoComplete="off"
+              placeholder="Your agent code" aria-label="Agent code"
+              className="h-12 min-w-0 flex-1 rounded-lg border border-line bg-white px-3 tracking-wider" />
+            <button disabled={checking || !code.trim()} className="h-12 rounded-lg bg-foreground px-5 font-medium text-white disabled:opacity-40">
+              {checking ? "Checking…" : "Continue"}
+            </button>
+          </form>
+          {codeError && <p className="mt-2 text-sm text-accent">{codeError}</p>}
           {picked && (
             <div className="mt-5 rounded-xl border border-line bg-surface p-4">
-              <label className="text-sm text-muted">Your mobile number, for the result you send respondents (optional)
+              <p className="flex items-center gap-2 font-display text-lg font-semibold"><Check size={18} className="text-accent" /> {picked}</p>
+              <label className="mt-3 block text-sm text-muted">Your mobile number, for the result you send respondents (optional)
                 <input value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" placeholder="09xx xxx xxxx"
                   className="mt-1 h-12 w-full rounded-lg border border-line bg-white px-3 text-foreground" />
               </label>

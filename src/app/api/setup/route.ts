@@ -1,9 +1,9 @@
 import { db } from "@/lib/db";
-import { roster } from "@/lib/bigboard";
 
 export const dynamic = "force-dynamic";
 
-// What a device needs before its first survey: the open events and the advisor names.
+// The open events a device can choose from. Advisors sign in with their agent code
+// (api/advisor), so the advisor list is never sent to devices.
 export async function GET() {
   const errors: string[] = [];
   let events: { id: string; name: string; date: string | null; venue: string; survey: string }[] = [];
@@ -15,11 +15,5 @@ export async function GET() {
   } catch (e) {
     errors.push(`Events: ${e instanceof Error ? e.message : e}`);
   }
-  let advisors: string[] = [];
-  try {
-    advisors = (await roster()).map((a) => a.advisor);
-  } catch (e) {
-    errors.push(`Advisors: ${e instanceof Error ? e.message : e}`);
-  }
-  return Response.json({ events, advisors, errors });
+  return Response.json({ events, errors });
 }
