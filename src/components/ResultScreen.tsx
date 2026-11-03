@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Copy, MessageSquare, Send } from "lucide-react";
-import { NOTES, resultLink, resultText, toResult } from "@/lib/result";
+import { resultLink, resultText, toResult } from "@/lib/result";
+import { ResultView } from "@/components/ResultView";
 import type { SurveyResponse } from "@/lib/survey";
 
 // Shown after Submit. The respondent scans the QR code to keep their result, or
@@ -19,7 +20,7 @@ export function ResultScreen({ response, advisorMobile, onNext }: {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    QRCode.toDataURL(link, { margin: 1, width: 360, color: { dark: "#14181c", light: "#ffffff" } }).then(setQr).catch(() => setQr(""));
+    QRCode.toDataURL(link, { errorCorrectionLevel: "L", margin: 1, width: 360, color: { dark: "#14181c", light: "#ffffff" } }).then(setQr).catch(() => setQr(""));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [response.id]);
 
@@ -31,34 +32,10 @@ export function ResultScreen({ response, advisorMobile, onNext }: {
   };
 
   return (
-    <div className="grid gap-8 md:grid-cols-[1fr_320px]">
-      <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
-          Thank you{res.n ? `, ${res.n}` : ""}!
-        </h1>
-        <div className="mt-2 h-1 w-12 rounded bg-accent" />
-        <p className="mt-3 text-muted">Here is your Quick Result from the Financial Wellness Survey.</p>
-        {res.p.length > 0 && (
-          <ol className="mt-5 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
-            {res.p.map((p, i) => (
-              <li key={p} className="flex gap-3 px-4 py-3">
-                <span className="font-display text-lg font-semibold text-accent">{i + 1}</span>
-                <div>
-                  <div className="font-medium">{p}</div>
-                  {NOTES[p] && <p className="mt-0.5 text-sm text-muted">{NOTES[p]}</p>}
-                </div>
-              </li>
-            ))}
-          </ol>
-        )}
-        <div className="mt-5 rounded-xl border border-line bg-surface px-4 py-3">
-          <div className="text-sm text-muted">Your financial advisor</div>
-          <div className="font-display text-lg font-semibold">{res.a}</div>
-          {res.m && <div className="text-accent">{res.m}</div>}
-        </div>
-      </div>
+    <div className="grid items-start gap-8 md:grid-cols-[1fr_300px]">
+      <ResultView res={res} />
 
-      <aside className="rounded-xl border border-line bg-surface p-4">
+      <aside className="rounded-xl border border-line bg-surface p-4 md:sticky md:top-24">
         <h2 className="font-display font-semibold">Keep your result</h2>
         <p className="mt-0.5 text-sm text-muted">Scan with your phone camera.</p>
         {qr ? <img src={qr} alt="QR code for your result" className="mx-auto mt-3 w-full max-w-[260px]" />
