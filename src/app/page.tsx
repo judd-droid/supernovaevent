@@ -1,18 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, CloudOff, Eye, EyeOff, UserRound } from "lucide-react";
+import { CalendarDays, CloudOff, Eye, EyeOff, QrCode, UserRound } from "lucide-react";
 import { SetupScreen } from "@/components/SetupScreen";
-import { SurveyForm } from "@/components/SurveyForm";
 import { ResultScreen } from "@/components/ResultScreen";
 import { getMobile, getSetup, pendingCount, queue, saveSetup, sync, type Setup } from "@/lib/device";
 import { DEFAULT_SURVEY, type SurveyId } from "@/lib/surveys";
+import { FORMS } from "@/lib/forms";
 import type { SurveyResponse } from "@/lib/survey";
-
-// The form for each survey variant in src/lib/surveys.ts.
-const FORMS: Record<SurveyId, typeof SurveyForm> = {
-  "fws-2026-10": SurveyForm,
-};
 
 export default function Home() {
   const [setup, setSetup] = useState<Setup | null | undefined>(undefined);
@@ -89,6 +84,10 @@ export default function Home() {
             aria-label={`Switch advisor (${setup.advisor})`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-sm font-medium">
             <UserRound size={16} /> <span className="hidden max-w-40 truncate sm:inline">{setup.advisor}</span>
           </button>
+          <a href={`/event-qr/${setup.eventId}`} target="_blank" rel="noopener" aria-label="Event QR code" title="Event QR code"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
+            <QrCode size={17} />
+          </a>
           <button onClick={() => setChanging("all")} aria-label="Change event" title="Change event"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
             <CalendarDays size={17} />

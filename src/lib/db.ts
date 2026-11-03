@@ -25,6 +25,13 @@ export async function db(): Promise<NeonQueryFunction<false, false> | null> {
     // holds the answers, contact details and consent as the device sent them.
     // Which survey variant the event uses (src/lib/surveys.ts).
     await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS survey text NOT NULL DEFAULT 'fws-2026-10'`;
+    // Self-service: respondents scan the event's QR code (public_token) and answer on
+    // their own phones. Those surveys belong to the event's team leader.
+    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS leader text`;
+    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS leader_mobile text NOT NULL DEFAULT ''`;
+    await sql`ALTER TABLE events ADD COLUMN IF NOT EXISTS public_token text`;
+    await sql`UPDATE events SET public_token = substr(md5(random()::text || id), 1, 16) WHERE public_token IS NULL`;
+    await sql`CREATE UNIQUE INDEX IF NOT EXISTS events_public_token ON events (public_token)`;
     await sql`CREATE TABLE IF NOT EXISTS responses (
       id text PRIMARY KEY,
       event_id text NOT NULL,

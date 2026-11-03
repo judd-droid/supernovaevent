@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, QrCode } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
 import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
 
-type Ev = { id: string; name: string; date: string | null; venue: string; active: boolean; survey: string; responses: number };
+type Ev = {
+  id: string; name: string; date: string | null; venue: string; active: boolean; survey: string; responses: number;
+  leader: string | null; leader_mobile: string; public_token: string;
+};
 type Row = {
   id: string; event_id: string; advisor: string; created_at: string; reassigned_from: string | null;
-  data: { eventName?: string; answers: Answers; contact: Contact; consent: boolean };
+  data: { eventName?: string; source?: string; answers: Answers; contact: Contact; consent: boolean };
 };
 
 const when = (iso: string) => new Intl.DateTimeFormat("en-PH", {
@@ -46,7 +49,7 @@ export default function Admin() {
 
   const evName = useMemo(() => new Map(events.map((e) => [e.id, e.name])), [events]);
 
-  const saveEvent = async (body: Partial<Ev>) => {
+  const saveEvent = async (body: Partial<Ev> & { leaderMobile?: string }) => {
     const res = await fetch("/api/admin/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     const d = await res.json().catch(() => ({}));
     if (!res.ok) return setError(d.error ?? "Couldn't save the event.");
@@ -111,11 +114,24 @@ export default function Admin() {
         {events.length > 0 && (
           <div className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
             {events.map((e) => (
-              <div key={e.id} className="flex items-center gap-3 px-4 py-3">
+              <div key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium">{e.name}</div>
                   <div className="text-sm text-muted">{surveyLabel(e.survey)} · {e.responses} surveys · {e.active ? "Open to advisors" : "Closed"}</div>
                 </div>
+                {/* The team leader owns surveys respondents answer themselves from the QR code. */}
+                <label className="flex items-center gap-2 text-sm text-muted">Team leader
+                  <select value={e.leader ?? ""} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, leader: x.target.value })}
+                    className="h-9 max-w-48 rounded-lg border border-line bg-white px-2 text-foreground">
+                    <option value="">None (QR off)</option>
+                    {[...(e.leader && !advisors.includes(e.leader) ? [e.leader] : []), ...advisors].map((x) => <option key={x}>{x}</option>)}
+                  </select>
+                </label>
+                <input key={`${e.id}-${e.leader_mobile}`} defaultValue={e.leader_mobile} inputMode="tel" placeholder="Leader's mobile"
+                  onBlur={(x) => x.target.value.trim() !== e.leader_mobile && saveEvent({ id: e.id, name: e.name, venue: e.venue, leaderMobile: x.target.value })}
+                  className="h-9 w-36 rounded-lg border border-line bg-white px-2 text-sm" />
+                <a href={`/event-qr/${e.id}`} target="_blank" rel="noopener"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><QrCode size={15} /> QR code</a>
                 {SURVEYS.length > 1 && (
                   <select value={e.survey} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, survey: x.target.value })}
                     className="h-9 rounded-lg border border-line bg-white px-2 text-sm">
@@ -150,7 +166,8 @@ export default function Admin() {
               <div key={r.id} className="px-4 py-3">
                 <button onClick={() => setOpen(open === r.id ? null : r.id)} className="flex w-full items-start gap-3 text-left">
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium">{c.name || "No name given"}{c.mobile && <span className="text-muted"> · {c.mobile}</span>}</div>
+                    <div className="font-medium">{c.name || "No name given"}{c.mobile && <span className="text-muted"> · {c.mobile}</span>}
+                      {r.data.source === "qr" && <span className="ml-2 rounded-full bg-background px-2 py-0.5 text-xs text-muted">Scanned QR</span>}</div>
                     <div className="text-sm text-muted">
                       {when(r.created_at)} · {evName.get(r.event_id) ?? ""} · Top: {a.ranked[0] ?? "-"} · {a.interest || "-"}
                     </div>
