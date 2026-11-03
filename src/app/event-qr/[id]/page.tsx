@@ -43,7 +43,9 @@ export default function EventQr({ params }: { params: Promise<{ id: string }> })
           <h1 className="mt-8 font-display text-4xl font-bold tracking-tight">Financial Wellness Survey</h1>
           <div className="mx-auto mt-3 h-1 w-14 rounded bg-accent" />
           <p className="mt-4 text-xl">Scan with your phone camera to answer in a few minutes.</p>
-          <p className="mt-1 text-lg font-medium text-accent">Get your free Financial Wellness Snapshot!</p>
+          <p className="mt-4 inline-block rounded-lg bg-accent px-5 py-2.5 text-lg font-semibold text-white [print-color-adjust:exact]">
+            Get your FREE Financial Wellness Snapshot!
+          </p>
           {qr ? <img src={qr} alt="QR code for the survey" className="mt-8 w-full max-w-[420px]" />
             : <div className="mt-8 aspect-square w-full max-w-[420px] rounded-xl bg-background" />}
           <p className="mt-6 text-sm text-muted">{info.name}</p>
