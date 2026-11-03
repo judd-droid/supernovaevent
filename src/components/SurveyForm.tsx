@@ -108,7 +108,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
         <div>
           <p className="font-display text-lg font-semibold leading-snug">Get your free Financial Wellness Snapshot!</p>
           <p className="mt-0.5 text-[15px] leading-snug">
-            Fill in your contact details to get your Financial Wellness Snapshot on the next page:<br />
+            Fill in your contact details to get your Financial Wellness Snapshot on the next page:
             where you stand in four key areas, and next steps for your top goals.
           </p>
         </div>
