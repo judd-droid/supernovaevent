@@ -79,8 +79,8 @@ export default function Home() {
         </>
       ) : (
         <header className="sticky top-0 z-10 -mx-5 mb-6 flex items-center gap-2 border-b border-line bg-surface/95 px-5 py-3 backdrop-blur md:-mx-8 md:gap-3 md:px-8">
-          <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto shrink-0 md:h-7" />
-          <div className="min-w-0 flex-1 truncate pl-2 text-sm font-medium"><span className="hidden sm:inline">{setup.eventName}</span></div>
+          <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto shrink-0" />
+          <div className="min-w-0 flex-1 translate-y-px truncate pl-2 text-sm font-medium"><span className="hidden sm:inline">{setup.eventName}</span></div>
           {pending > 0 && (
             <span title={`${pending} waiting to send`} aria-label={`${pending} waiting to send`} className="text-accent"><CloudOff size={18} /></span>
           )}
