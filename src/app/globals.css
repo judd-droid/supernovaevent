@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Supernova Qi: red for accents only, charcoal text, quiet grays. */
+:root {
+  --background: #f6f7f8;
+  --surface: #ffffff;
+  --foreground: #14181c;
+  --muted: #666e75;
+  --line: #e3e6e9;
+  --accent: #e00842;
+  --accent-soft: #ffedf1; /* red 50 */
+  --accent-line: #f39cb3; /* red 100 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --font-sans: var(--font-roboto);
+  --font-display: var(--font-poppins);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-tap-highlight-color: transparent;
+}
+
+textarea, input, select {
+  font-size: 16px; /* no iOS zoom on focus */
+}
