@@ -23,7 +23,7 @@ export default function Login() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center px-6">
-      <img src="/supernova_black.png" alt="Supernova" className="h-9 w-auto self-start" />
+      <img src="/supernova-logo.png" alt="Supernova" className="h-9 w-auto self-start" />
       <h1 className="mt-6 font-display text-2xl font-bold tracking-tight">Financial Wellness Survey</h1>
       <p className="mt-1 text-sm text-muted">Enter the team passcode.<br />This device will remember it.</p>
       <form onSubmit={submit} className="mt-6 space-y-3">

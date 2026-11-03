@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CloudOff, UserRound } from "lucide-react";
+import { CalendarDays, CloudOff, Eye, EyeOff, UserRound } from "lucide-react";
 import { SetupScreen } from "@/components/SetupScreen";
 import { SurveyForm } from "@/components/SurveyForm";
 import { ResultScreen } from "@/components/ResultScreen";
-import { getMobile, getSetup, pendingCount, queue, saveSetup, sentToday, sync, type Setup } from "@/lib/device";
+import { getMobile, getSetup, pendingCount, queue, saveSetup, sync, type Setup } from "@/lib/device";
 import { DEFAULT_SURVEY, type SurveyId } from "@/lib/surveys";
 import type { SurveyResponse } from "@/lib/survey";
 
@@ -20,23 +20,27 @@ export default function Home() {
   const [done, setDone] = useState<SurveyResponse | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [pending, setPending] = useState(0);
-  const [sent, setSent] = useState(0);
+  const [navHidden, setNavHidden] = useState(false);
 
-  const refresh = useCallback((s: Setup | null) => {
-    setPending(pendingCount());
-    setSent(s ? sentToday(s) : 0);
-  }, []);
+  const refresh = useCallback(() => setPending(pendingCount()), []);
+
+  // The top bar can be hidden so respondents see only the survey; the device remembers it.
+  const toggleNav = (hide: boolean) => {
+    setNavHidden(hide);
+    try { localStorage.setItem("sv.navHidden", hide ? "1" : ""); } catch { /* blocked */ }
+  };
 
   const trySync = useCallback(async () => {
     await sync();
-    refresh(getSetup());
+    refresh();
   }, [refresh]);
 
   useEffect(() => {
     const s = getSetup();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- device storage is only readable after mount
     setSetup(s);
-    refresh(s);
+    try { setNavHidden(localStorage.getItem("sv.navHidden") === "1"); } catch { /* blocked */ }
+    refresh();
     trySync();
     // Pick up a survey variant changed in admin after this device chose the event.
     if (s) {
@@ -56,7 +60,7 @@ export default function Home() {
     return (
       <SetupScreen current={setup} only={changing === "advisor" ? "advisor" : undefined}
         onCancel={setup ? () => setChanging(null) : undefined}
-        onDone={(s) => { saveSetup(s); setSetup(s); setChanging(null); setDone(null); setFormKey((k) => k + 1); refresh(s); }} />
+        onDone={(s) => { saveSetup(s); setSetup(s); setChanging(null); setDone(null); setFormKey((k) => k + 1); refresh(); }} />
     );
   }
 
@@ -65,22 +69,35 @@ export default function Home() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-16 md:px-8">
-      <header className="sticky top-0 z-10 -mx-5 mb-6 flex items-center gap-3 border-b border-line bg-surface/95 px-5 py-3 backdrop-blur md:-mx-8 md:px-8">
-        <img src="/supernova_black.png" alt="Supernova" className="h-7 w-auto" />
-        <div className="min-w-0 flex-1 text-sm">
-          <div className="truncate font-medium">{setup.eventName}</div>
-          <div className="truncate text-muted">
-            {sent} sent today{pending > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 text-accent"><CloudOff size={13} /> {pending} waiting to send</span>
-            )}
-          </div>
-        </div>
-        <button onClick={() => setChanging("advisor")}
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-line px-3 text-sm font-medium">
-          <UserRound size={16} /> <span className="max-w-40 truncate">{setup.advisor}</span>
-        </button>
-        <button onClick={() => setChanging("all")} className="hidden text-sm text-muted underline md:block">Change event</button>
-      </header>
+      {navHidden ? (
+        <>
+          <button onClick={() => toggleNav(false)} aria-label="Show the top bar" title="Show the top bar"
+            className="fixed right-3 top-3 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface/90 text-muted shadow-sm backdrop-blur">
+            <Eye size={18} />
+          </button>
+          <div className="h-6" />
+        </>
+      ) : (
+        <header className="sticky top-0 z-10 -mx-5 mb-6 flex items-center gap-2 border-b border-line bg-surface/95 px-5 py-3 backdrop-blur md:-mx-8 md:gap-3 md:px-8">
+          <img src="/supernova-logo.png" alt="Supernova" className="h-8 w-auto shrink-0 sm:h-9 md:h-11" />
+          <div className="min-w-0 flex-1 truncate pl-2 text-sm font-medium"><span className="hidden sm:inline">{setup.eventName}</span></div>
+          {pending > 0 && (
+            <span title={`${pending} waiting to send`} aria-label={`${pending} waiting to send`} className="text-accent"><CloudOff size={18} /></span>
+          )}
+          <button onClick={() => setChanging("advisor")}
+            aria-label={`Switch advisor (${setup.advisor})`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-sm font-medium">
+            <UserRound size={16} /> <span className="hidden max-w-40 truncate sm:inline">{setup.advisor}</span>
+          </button>
+          <button onClick={() => setChanging("all")} aria-label="Change event" title="Change event"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
+            <CalendarDays size={17} />
+          </button>
+          <button onClick={() => toggleNav(true)} aria-label="Hide the top bar" title="Hide the top bar"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted">
+            <EyeOff size={17} />
+          </button>
+        </header>
+      )}
 
       {done ? (
         <ResultScreen response={done} advisorMobile={getMobile(done.advisor)}
@@ -94,7 +111,7 @@ export default function Home() {
           };
           queue(r);
           setDone(r);
-          refresh(setup);
+          refresh();
           window.scrollTo(0, 0);
           trySync();
         }} />

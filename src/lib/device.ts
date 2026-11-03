@@ -28,12 +28,8 @@ export const saveMobile = (advisor: string, mobile: string) => write(MOBILES, { 
 
 export const pendingCount = () => read<SurveyResponse[]>(PENDING, []).length;
 
-// Surveys sent from this device today, per advisor and event: a count, not the surveys.
+// A count of surveys sent from this device today, per advisor and event (not the surveys).
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
-export function sentToday(s: Setup): number {
-  const c = read<{ day: string; counts: Record<string, number> }>(SENT, { day: "", counts: {} });
-  return c.day === today() ? c.counts[`${s.eventId}|${s.advisor}`] ?? 0 : 0;
-}
 function countSent(list: SurveyResponse[]) {
   const c = read<{ day: string; counts: Record<string, number> }>(SENT, { day: "", counts: {} });
   const counts = c.day === today() ? c.counts : {};

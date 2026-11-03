@@ -77,7 +77,7 @@ export default function Admin() {
 
   return (
     <main className="mx-auto w-full max-w-6xl px-5 pb-16 pt-8 md:px-8">
-      <img src="/supernova_black.png" alt="Supernova" className="h-8 w-auto" />
+      <img src="/supernova-logo.png" alt="Supernova" className="h-8 w-auto" />
       <h1 className="mt-5 font-display text-2xl font-bold tracking-tight">Survey admin</h1>
       <div className="mt-2 h-1 w-12 rounded bg-accent" />
       {error && <p className="mt-4 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">{error}</p>}
