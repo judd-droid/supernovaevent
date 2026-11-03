@@ -103,7 +103,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
 
       <section className="mt-8 rounded-xl border border-line bg-surface p-4">
         <h2 className="font-display font-semibold">Your details {wantsContact(a) ? "" : "(optional)"}</h2>
-        <p className="mt-0.5 text-sm text-muted">Leave your name and mobile if you&rsquo;d like your result and a follow-up.</p>
+        <p className="mt-0.5 text-sm text-muted">Leave your name and mobile to get your personal Quick Result: a snapshot of your financial wellness with next steps for your goals.</p>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {input("Name", "name", { autoComplete: "name" })}
           {input("Mobile number", "mobile", { inputMode: "tel", placeholder: "09xx xxx xxxx" })}

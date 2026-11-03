@@ -20,14 +20,18 @@ export async function GET(req: Request) {
   if (!advisor) return Response.json({ error: "Missing advisor" }, { status: 400 });
 
   let names = [advisor];
+  let scope: "self" | "unit" = "self";
   if (params.get("scope") === "unit") {
-    const all = await roster();
+    const all = await roster().catch(() => []);
     const me = all.find((a) => a.advisor.toLowerCase() === advisor.toLowerCase());
-    if (me?.isLeader && me.unit) names = all.filter((a) => a.unit === me.unit).map((a) => a.advisor);
+    if (me?.isLeader && me.unit) {
+      names = [advisor, ...all.filter((a) => a.unit === me.unit && a.advisor.toLowerCase() !== advisor.toLowerCase()).map((a) => a.advisor)];
+      scope = "unit";
+    }
   }
   const lower = names.map((n) => n.toLowerCase());
   const leads = await sql`SELECT r.id, r.advisor, r.data, r.created_at, e.name AS event_name, to_char(e.date, 'YYYY-MM-DD') AS event_date
                           FROM responses r LEFT JOIN events e ON e.id = r.event_id
                           WHERE lower(r.advisor) = ANY(${lower}) ORDER BY r.created_at DESC`;
-  return Response.json({ leads });
+  return Response.json({ advisor, scope, leads });
 }

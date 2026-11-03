@@ -64,6 +64,7 @@ export default function Home() {
     );
   }
 
+  const next = () => { setDone(null); setFormKey((k) => k + 1); window.scrollTo(0, 0); };
   const survey = (setup.survey && setup.survey in FORMS ? setup.survey : DEFAULT_SURVEY) as SurveyId;
   const Form = FORMS[survey];
 
@@ -100,8 +101,19 @@ export default function Home() {
       )}
 
       {done ? (
-        <ResultScreen response={done} advisorMobile={getMobile(done.advisor)}
-          onNext={() => { setDone(null); setFormKey((k) => k + 1); window.scrollTo(0, 0); }} />
+        // The Quick Result is for respondents who left their contact details; everyone else is thanked.
+        done.consent ? (
+          <ResultScreen response={done} advisorMobile={getMobile(done.advisor)} onNext={next} />
+        ) : (
+          <div className="mx-auto max-w-xl py-16 text-center">
+            <h1 className="font-display text-3xl font-bold tracking-tight">Thank you for your time!</h1>
+            <div className="mx-auto mt-3 h-1 w-12 rounded bg-accent" />
+            <p className="mt-4 text-[17px] text-muted">
+              Your answers help us understand the financial priorities of the people we serve. Enjoy the rest of the event!
+            </p>
+            <button onClick={next} className="mt-10 h-12 rounded-lg bg-foreground px-8 font-medium text-white">New survey</button>
+          </div>
+        )
       ) : (
         <Form key={formKey} onSubmit={(answers, contact, consent) => {
           const r: SurveyResponse = {
