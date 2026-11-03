@@ -7,7 +7,8 @@ let client: NeonQueryFunction<false, false> | null = null;
 let ready: Promise<void> | null = null;
 
 export async function db(): Promise<NeonQueryFunction<false, false> | null> {
-  const url = process.env.DATABASE_URL;
+  // DATABASE_URL by default; the Neon integration may name it with another prefix.
+  const url = process.env.DATABASE_URL ?? process.env.STORAGE_URL ?? process.env.POSTGRES_URL;
   if (!url) return null;
   client ??= neon(url);
   const sql = client;
