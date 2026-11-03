@@ -5,6 +5,8 @@ import { Check, Sparkles } from "lucide-react";
 import { PART1, PART2, emptyAnswers, emptyContact, type Answers, type Contact, type Question } from "@/lib/survey";
 
 const CONSENT_NEEDED = "To leave your name or mobile, please tick the consent box at the bottom.";
+const BOTH_NEEDED = "Please enter both your name and mobile number.";
+const DETAILS_ERRORS = [CONSENT_NEEDED, BOTH_NEEDED];
 
 // The one-page survey, laid out in two columns on an iPad like the printed form.
 export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, consent: boolean) => void }) {
@@ -31,6 +33,9 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
   const submit = () => {
     if (!a.ranked.length) return setError("Please choose at least your top priority in question 2.");
     if (!a.interest) return setError("Please answer question 9.");
+    // Name and mobile go together: a respondent who leaves any details (or ticks consent) gives both.
+    const anyDetail = hasContact || !!(c.gender || c.civilStatus || c.birthDate) || consent;
+    if (anyDetail && !(c.name.trim() && c.mobile.trim())) return setError(BOTH_NEEDED);
     if (hasContact && !consent) return setError(CONSENT_NEEDED);
     if (c.mobile.trim() && !/^(\+?63|0)9\d{9}$/.test(c.mobile.replace(/[\s-]/g, ""))) return setError("Please check the mobile number (e.g. 0917 123 4567).");
     setError("");
@@ -76,8 +81,8 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
     </fieldset>
   );
 
-  const input = (label: string, k: keyof Contact, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
-    <label className="text-sm text-muted">{label}
+  const input = (label: string, k: keyof Contact, props: React.InputHTMLAttributes<HTMLInputElement> = {}, required = false) => (
+    <label className="text-sm text-muted">{label}{required && <span className="text-accent"> *</span>}
       <input value={c[k]} onChange={(e) => setC((x) => ({ ...x, [k]: e.target.value }))} {...props}
         className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-3 text-foreground" />
     </label>
@@ -116,8 +121,8 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
       <section className="mt-3 rounded-xl border border-line bg-surface p-4">
         <h2 className="font-display font-semibold">Your Details</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
-          {input("Name", "name", { autoComplete: "name" })}
-          {input("Mobile number", "mobile", { inputMode: "tel", placeholder: "09xx xxx xxxx" })}
+          {input("Name", "name", { autoComplete: "name" }, true)}
+          {input("Mobile number", "mobile", { inputMode: "tel", placeholder: "09xx xxx xxxx" }, true)}
           {input("Date of birth", "birthDate", { type: "date" })}
           <label className="text-sm text-muted">Gender
             <select value={c.gender} onChange={(e) => setC((x) => ({ ...x, gender: e.target.value }))}
@@ -148,10 +153,10 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
         <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
           <p className="flex-1">
             {error}
-            {error === CONSENT_NEEDED && " Or clear your details to submit without them (you won’t get your Financial Wellness Snapshot)."}
+            {DETAILS_ERRORS.includes(error) && " Or clear your details to submit without them (you won’t get your Financial Wellness Snapshot)."}
           </p>
           {/* Respondents who'd rather not consent can drop their details and still submit. */}
-          {error === CONSENT_NEEDED && (
+          {DETAILS_ERRORS.includes(error) && (
             <button type="button" onClick={() => { setC(emptyContact()); setError(""); }}
               className="h-9 shrink-0 rounded-lg border border-accent-line bg-white px-4 font-medium text-accent">
               Clear Details
