@@ -12,7 +12,7 @@ export default function ResultPage() {
   if (res === undefined) return null;
   return (
     <main className="mx-auto w-full max-w-xl px-5 py-8">
-      <img src="/supernova-logo.png" alt="Supernova" className="h-8 w-auto" />
+      <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto" />
       {!res ? (
         <p className="mt-8 text-sm text-muted">This link is incomplete. Ask your advisor to send it again.</p>
       ) : (

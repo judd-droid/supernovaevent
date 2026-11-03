@@ -51,7 +51,7 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
   return (
     <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-8">
       <header className="flex items-center justify-between">
-        <img src="/supernova-logo.png" alt="Supernova" className="h-8 w-auto" />
+        <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto" />
         {onCancel && <button onClick={onCancel} className="text-sm text-muted underline">Cancel</button>}
       </header>
       <h1 className="mt-6 font-display text-2xl font-bold tracking-tight">
