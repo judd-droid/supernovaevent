@@ -84,9 +84,14 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
           <p className="text-sm text-muted">Event: <b className="font-medium text-foreground">{event?.name}</b>{!only && (
             <button onClick={() => setStep("event")} className="ml-2 underline">Change</button>)}</p>
           <form onSubmit={lookUp} className="mt-4 flex gap-2">
-            <input value={code} onChange={(e) => { setCode(e.target.value); setPicked(""); }} inputMode="numeric" autoComplete="off"
-              placeholder="Your agent code" aria-label="Agent code"
-              className="h-12 min-w-0 flex-1 rounded-lg border border-line bg-white px-3 tracking-wider" />
+            {/* Agent codes start with 00, which our records leave out; the 00 is shown fixed,
+                and a code typed with its zeros still works (the server ignores leading zeros). */}
+            <label className="flex h-12 min-w-0 flex-1 items-center rounded-lg border border-line bg-white px-3 focus-within:border-foreground">
+              <span className="select-none tracking-wider text-muted">00</span>
+              <input value={code} onChange={(e) => { setCode(e.target.value); setPicked(""); }} inputMode="numeric" autoComplete="off"
+                placeholder="7123456" aria-label="Agent code, after the 00"
+                className="h-full min-w-0 flex-1 bg-transparent pl-0.5 tracking-wider outline-none" />
+            </label>
             <button disabled={checking || !code.trim()} className="h-12 rounded-lg bg-foreground px-5 font-medium text-white disabled:opacity-40">
               {checking ? "Checking…" : "Continue"}
             </button>
