@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, CloudOff, Eye, EyeOff, QrCode, UserRound } from "lucide-react";
+import { CalendarDays, CloudOff, Eye, EyeOff, QrCode, ShieldCheck, UserRound } from "lucide-react";
 import { SetupScreen } from "@/components/SetupScreen";
 import { ResultScreen } from "@/components/ResultScreen";
 import { getMobile, getSetup, pendingCount, queue, saveSetup, sync, type Setup } from "@/lib/device";
@@ -16,6 +16,7 @@ export default function Home() {
   const [formKey, setFormKey] = useState(0);
   const [pending, setPending] = useState(0);
   const [navHidden, setNavHidden] = useState(false);
+  const [admin, setAdmin] = useState(false);
 
   const refresh = useCallback(() => setPending(pendingCount()), []);
 
@@ -37,6 +38,7 @@ export default function Home() {
     try { setNavHidden(localStorage.getItem("sv.navHidden") === "1"); } catch { /* blocked */ }
     refresh();
     trySync();
+    fetch("/api/me").then((r) => r.json()).then((d) => setAdmin(!!d.admin)).catch(() => {});
     // Pick up a survey variant changed in admin after this device chose the event.
     if (s) {
       fetch("/api/setup").then((r) => r.json()).then((d: { events?: { id: string; survey: string }[] }) => {
@@ -84,6 +86,12 @@ export default function Home() {
             aria-label={`Switch advisor (${setup.advisor})`} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line px-3 text-sm font-medium">
             <UserRound size={16} /> <span className="hidden max-w-40 truncate sm:inline">{setup.advisor}</span>
           </button>
+          {admin && (
+            <a href="/admin" aria-label="Admin" title="Admin"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
+              <ShieldCheck size={17} />
+            </a>
+          )}
           <a href={`/event-qr/${setup.eventId}`} target="_blank" rel="noopener" aria-label="Event QR code" title="Event QR code"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
             <QrCode size={17} />
