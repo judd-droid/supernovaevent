@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, Sparkles } from "lucide-react";
-import { PART1, PART2, emptyAnswers, emptyContact, wantsContact, type Answers, type Contact, type Question } from "@/lib/survey";
+import { PART1, PART2, emptyAnswers, emptyContact, type Answers, type Contact, type Question } from "@/lib/survey";
 
 const CONSENT_NEEDED = "To leave your name or mobile, please tick the consent box at the bottom.";
 
@@ -114,7 +114,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
         </div>
       </div>
       <section className="mt-3 rounded-xl border border-line bg-surface p-4">
-        <h2 className="font-display font-semibold">Your details {wantsContact(a) ? "" : "(optional)"}</h2>
+        <h2 className="font-display font-semibold">Your Details</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {input("Name", "name", { autoComplete: "name" })}
           {input("Mobile number", "mobile", { inputMode: "tel", placeholder: "09xx xxx xxxx" })}
@@ -154,7 +154,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
           {error === CONSENT_NEEDED && (
             <button type="button" onClick={() => { setC(emptyContact()); setError(""); }}
               className="h-9 shrink-0 rounded-lg border border-accent-line bg-white px-4 font-medium text-accent">
-              Clear details
+              Clear Details
             </button>
           )}
         </div>
