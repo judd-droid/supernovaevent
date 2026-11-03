@@ -106,10 +106,10 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
       <div className="mt-8 flex items-start gap-3 rounded-xl border border-accent-line bg-accent-soft px-4 py-3">
         <Sparkles size={22} className="mt-0.5 shrink-0 text-accent" />
         <div>
-          <p className="font-display text-lg font-semibold leading-snug">Get your free Financial Wellness Snapshot</p>
+          <p className="font-display text-lg font-semibold leading-snug">Get your free Financial Wellness Snapshot!</p>
           <p className="mt-0.5 text-[15px] leading-snug">
-            Fill in your contact details to get your Financial Wellness Snapshot on the next page: where you stand in
-            four key areas, and next steps for your top goals.
+            Fill in your contact details to get your Financial Wellness Snapshot on the next page:<br />
+            where you stand in four key areas, and next steps for your top goals.
           </p>
         </div>
       </div>
