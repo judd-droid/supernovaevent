@@ -42,6 +42,18 @@ export async function db(): Promise<NeonQueryFunction<false, false> | null> {
       reassigned_from text
     )`;
     await sql`CREATE INDEX IF NOT EXISTS responses_advisor ON responses (advisor)`;
+    // Requests from the Loggers to move a lead to another advisor; the AD approves.
+    await sql`CREATE TABLE IF NOT EXISTS reassign_requests (
+      id text PRIMARY KEY,
+      response_id text NOT NULL,
+      from_advisor text NOT NULL,
+      to_advisor text NOT NULL,
+      requested_by text NOT NULL,
+      note text NOT NULL DEFAULT '',
+      status text NOT NULL DEFAULT 'pending',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      decided_at timestamptz
+    )`;
     await sql`CREATE INDEX IF NOT EXISTS responses_event ON responses (event_id)`;
   })().catch((e) => { ready = null; throw e; });
   await ready;

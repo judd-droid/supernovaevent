@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Plus, QrCode } from "lucide-react";
+import { ArrowRight, Download, Plus, QrCode, Trash2 } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
 import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
 
@@ -12,6 +12,11 @@ type Ev = {
 type Row = {
   id: string; event_id: string; advisor: string; created_at: string; reassigned_from: string | null;
   data: { eventName?: string; source?: string; answers: Answers; contact: Contact; consent: boolean };
+};
+
+type Req = {
+  id: string; response_id: string; from_advisor: string; to_advisor: string; requested_by: string; note: string;
+  created_at: string; lead_name: string | null; event_name: string | null; current_advisor: string;
 };
 
 const when = (iso: string) => new Intl.DateTimeFormat("en-PH", {
@@ -32,15 +37,22 @@ export default function Admin() {
   const [name, setName] = useState("");
   const [survey, setSurvey] = useState<string>(DEFAULT_SURVEY);
   const [open, setOpen] = useState<string | null>(null);
+  const [requests, setRequests] = useState<Req[]>([]);
+  const [moveFrom, setMoveFrom] = useState("");
+  const [moveTo, setMoveTo] = useState("");
+  const [moveEvent, setMoveEvent] = useState("");
+  const [notice, setNotice] = useState("");
 
   const load = useCallback(async () => {
-    const [e, r] = await Promise.all([
+    const [e, r, q] = await Promise.all([
       fetch("/api/admin/events").then((x) => x.json()),
       fetch(`/api/admin/responses${filter ? `?event=${filter}` : ""}`).then((x) => x.json()),
-    ]).catch(() => [{ error: "Couldn't reach the server." }, {}]);
-    setError(e.error ?? r.error ?? "");
+      fetch("/api/admin/requests").then((x) => x.json()),
+    ]).catch(() => [{ error: "Couldn't reach the server." }, {}, {}]);
+    setError(e.error ?? r.error ?? q.error ?? "");
     setEvents(e.events ?? []);
     setRows(r.responses ?? []);
+    setRequests(q.requests ?? []);
   }, [filter]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- fetches, then sets state
@@ -59,6 +71,40 @@ export default function Admin() {
     await fetch("/api/admin/responses", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, advisor }) });
     load();
   };
+
+  // Move every lead of one advisor (optionally only one event's) to another.
+  const moveAll = async () => {
+    const scope = moveEvent ? ` from ${evName.get(moveEvent)}` : "";
+    if (!window.confirm(`Move all of ${moveFrom}'s leads${scope} to ${moveTo}?`)) return;
+    const res = await fetch("/api/admin/responses", {
+      method: "PATCH", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ from: moveFrom, advisor: moveTo, event: moveEvent || undefined }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Moved ${d.moved} ${d.moved === 1 ? "lead" : "leads"} to ${moveTo}.` : d.error ?? "Couldn't move the leads.");
+    load();
+  };
+
+  // Delete all of an event's surveys. Asked twice: a confirm, then typing DELETE.
+  const purge = async (e: Ev) => {
+    if (!e.responses) return setNotice(`${e.name} has no surveys to delete.`);
+    if (!window.confirm(`Delete all ${e.responses} surveys from ${e.name}? Their leads will also disappear from the advisors' Loggers.`)) return;
+    const typed = window.prompt(`This can't be undone. Type DELETE to remove all ${e.responses} surveys from ${e.name}.`);
+    if (typed?.trim() !== "DELETE") return setNotice("Nothing was deleted.");
+    const res = await fetch("/api/admin/purge", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ event: e.id }) });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Deleted ${d.deleted} surveys from ${e.name}.` : d.error ?? "Couldn't delete the surveys.");
+    load();
+  };
+
+  const decide = async (id: string, approve: boolean) => {
+    const res = await fetch("/api/admin/requests", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, approve }) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) setNotice(d.error ?? "Couldn't update the request.");
+    load();
+  };
+
+  const owners = useMemo(() => [...new Set(rows.map((r) => r.advisor))].sort(), [rows]);
 
   const exportCsv = () => {
     const head = ["Date", "Event", "Advisor", "Name", "Mobile", "Gender", "Civil status", "Date of birth", "Consent",
@@ -84,10 +130,37 @@ export default function Admin() {
       <h1 className="mt-5 font-display text-2xl font-bold tracking-tight">Survey admin</h1>
       <div className="mt-2 h-1 w-12 rounded bg-accent" />
       {error && <p className="mt-4 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">{error}</p>}
+      {notice && (
+        <p className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2 text-sm">
+          {notice}<button onClick={() => setNotice("")} className="text-muted underline">Dismiss</button>
+        </p>
+      )}
+
+      {requests.length > 0 && (
+        <section className="mt-6">
+          <h2 className="font-display text-lg font-semibold">Reassignment requests ({requests.length})</h2>
+          <div className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-accent-line bg-surface">
+            {requests.map((q) => (
+              <div key={q.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{q.lead_name || "No name given"} <span className="text-sm font-normal text-muted">· {q.event_name}</span></div>
+                  <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
+                    {q.current_advisor} <ArrowRight size={14} /> <b className="font-medium text-foreground">{q.to_advisor}</b>
+                    · requested by {q.requested_by} · {when(q.created_at)}
+                  </div>
+                  {q.note && <div className="mt-0.5 text-sm">&ldquo;{q.note}&rdquo;</div>}
+                </div>
+                <button onClick={() => decide(q.id, false)} className="h-9 rounded-full border border-line px-4 text-sm">Decline</button>
+                <button onClick={() => decide(q.id, true)} className="h-9 rounded-full bg-foreground px-4 text-sm font-medium text-white">Approve</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-6">
         <h2 className="font-display text-lg font-semibold">Events</h2>
-        <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[1fr_170px_1fr_1fr_auto] md:items-end">
+        <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[1fr_160px_1fr_minmax(17rem,1.2fr)_auto] md:items-end">
           <label className="text-sm text-muted">Venue
             <input value={venue} onChange={(e) => { setVenue(e.target.value); setName(suggestName(e.target.value, date)); }}
               placeholder="San Beda" className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-3 text-foreground" />
@@ -140,10 +213,39 @@ export default function Admin() {
                 )}
                 <button onClick={() => saveEvent({ id: e.id, name: e.name, venue: e.venue, active: !e.active })}
                   className="h-9 rounded-full border border-line px-3 text-sm">{e.active ? "Close" : "Reopen"}</button>
+                <button onClick={() => purge(e)} aria-label={`Delete all surveys from ${e.name}`} title="Delete all surveys"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-accent"><Trash2 size={15} /></button>
               </div>
             ))}
           </div>
         )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="font-display text-lg font-semibold">Move leads</h2>
+        <div className="mt-3 grid gap-3 rounded-xl border border-line bg-surface p-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+          <label className="text-sm text-muted">From
+            <select value={moveFrom} onChange={(e) => setMoveFrom(e.target.value)} className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-2 text-foreground">
+              <option value="">Choose an advisor</option>
+              {owners.map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </label>
+          <label className="text-sm text-muted">To
+            <select value={moveTo} onChange={(e) => setMoveTo(e.target.value)} className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-2 text-foreground">
+              <option value="">Choose an advisor</option>
+              {advisors.filter((x) => x !== moveFrom).map((x) => <option key={x}>{x}</option>)}
+            </select>
+          </label>
+          <label className="text-sm text-muted">Which leads
+            <select value={moveEvent} onChange={(e) => setMoveEvent(e.target.value)} className="mt-1 h-11 w-full rounded-lg border border-line bg-white px-2 text-foreground">
+              <option value="">All events</option>
+              {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+            </select>
+          </label>
+          <button onClick={moveAll} disabled={!moveFrom || !moveTo}
+            className="h-11 rounded-lg bg-foreground px-4 font-medium text-white disabled:opacity-40">Move leads</button>
+        </div>
+        <p className="mt-2 text-xs text-muted">The From list shows advisors with leads in the surveys listed below. To move a single lead, open it below and change its owner.</p>
       </section>
 
       <section className="mt-8">
