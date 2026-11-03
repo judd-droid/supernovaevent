@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { PART1, PART2, emptyAnswers, emptyContact, wantsContact, type Answers, type Contact, type Question } from "@/lib/survey";
 
 // The one-page survey, laid out in two columns on an iPad like the printed form.
@@ -101,9 +101,18 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
         </section>
       </div>
 
-      <section className="mt-8 rounded-xl border border-line bg-surface p-4">
+      <div className="mt-8 flex items-start gap-3 rounded-xl border border-accent-line bg-accent-soft px-4 py-3">
+        <Sparkles size={22} className="mt-0.5 shrink-0 text-accent" />
+        <div>
+          <p className="font-display text-lg font-semibold leading-snug">Get your free Financial Wellness Snapshot</p>
+          <p className="mt-0.5 text-[15px] leading-snug">
+            Fill in your contact details to get your Financial Wellness Snapshot on the next page: where you stand in
+            four key areas, and next steps for your top goals.
+          </p>
+        </div>
+      </div>
+      <section className="mt-3 rounded-xl border border-line bg-surface p-4">
         <h2 className="font-display font-semibold">Your details {wantsContact(a) ? "" : "(optional)"}</h2>
-        <p className="mt-0.5 text-sm text-muted">Leave your name and mobile to get your personal Quick Result: a snapshot of your financial wellness with next steps for your goals.</p>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           {input("Name", "name", { autoComplete: "name" })}
           {input("Mobile number", "mobile", { inputMode: "tel", placeholder: "09xx xxx xxxx" })}

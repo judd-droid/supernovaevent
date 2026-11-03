@@ -8,7 +8,7 @@ const STATUS_STYLE: Record<Status, { pill: string; Icon: typeof CheckCircle2 }> 
   attention: { pill: "bg-accent-soft text-accent", Icon: CircleAlert },
 };
 
-// The Quick Result itself, shown on the device after Submit and on the
+// The Financial Wellness Snapshot (the Quick Result) itself, shown on the device after Submit and on the
 // respondent's own phone from the QR code or message.
 export function ResultView({ res }: { res: Result }) {
   const a = answersOf(res);
@@ -19,7 +19,7 @@ export function ResultView({ res }: { res: Result }) {
   return (
     <div>
       <h1 className="font-display text-2xl font-bold tracking-tight md:text-3xl">
-        {res.n ? `${res.n}, here's your Quick Result` : "Your Quick Result"}
+        {res.n ? `${res.n}, here's your Financial Wellness Snapshot` : "Your Financial Wellness Snapshot"}
       </h1>
       <div className="mt-2 h-1 w-12 rounded bg-accent" />
       <p className="mt-3 text-muted">
@@ -29,7 +29,7 @@ export function ResultView({ res }: { res: Result }) {
       {snapshot.length > 0 && (
         <section className="mt-7">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="font-display text-lg font-semibold">Your financial wellness snapshot</h2>
+            <h2 className="font-display text-lg font-semibold">Where you stand</h2>
             {score(snapshot) > 0 && <span className="text-sm text-muted">{score(snapshot)} of {snapshot.length} on track</span>}
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-2">

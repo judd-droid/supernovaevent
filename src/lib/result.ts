@@ -60,6 +60,6 @@ export function resultText(res: Result, link: string): string {
   const top = priorities(answersOf(res));
   const hi = res.n ? `Hi ${res.n}! ` : "Hi! ";
   const list = top.length ? ` Your top priorities: ${top.map((p, i) => `${i + 1}) ${p}`).join(", ")}.` : "";
-  return `${hi}Thank you for answering our Financial Wellness Survey.${list} Your full Quick Result, with a snapshot ` +
-    `and next steps for each goal: ${link}\n\n${res.a}, Financial Advisor${res.m ? `, ${res.m}` : ""}`;
+  return `${hi}Thank you for answering our Financial Wellness Survey.${list} Your Financial Wellness Snapshot, with ` +
+    `where you stand and next steps for each goal: ${link}\n\n${res.a}, Financial Advisor${res.m ? `, ${res.m}` : ""}`;
 }
