@@ -44,26 +44,28 @@ export function queue(r: SurveyResponse) {
 let syncing: Promise<number> | null = null;
 
 // Send whatever is waiting. Returns how many are still waiting afterwards.
+// The lock is released in .finally() after it's set, so a quick run (nothing
+// waiting) can't leave it stuck on.
 export function sync(): Promise<number> {
-  syncing ??= (async () => {
-    try {
-      const list = read<SurveyResponse[]>(PENDING, []);
-      if (!list.length) return 0;
-      const res = await fetch("/api/responses", {
-        method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ responses: list }),
-      });
-      if (!res.ok) return list.length;
-      const { saved } = (await res.json()) as { saved: string[] };
-      const done = new Set(saved);
-      countSent(list.filter((r) => done.has(r.id)));
-      const left = read<SurveyResponse[]>(PENDING, []).filter((r) => !done.has(r.id));
-      write(PENDING, left);
-      return left.length;
-    } catch {
-      return pendingCount();
-    } finally {
-      syncing = null;
-    }
-  })();
+  if (!syncing) syncing = send().finally(() => { syncing = null; });
   return syncing;
+}
+
+async function send(): Promise<number> {
+  try {
+    const list = read<SurveyResponse[]>(PENDING, []);
+    if (!list.length) return 0;
+    const res = await fetch("/api/responses", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ responses: list }),
+    });
+    if (!res.ok) return list.length;
+    const { saved } = (await res.json()) as { saved: string[] };
+    const done = new Set(saved);
+    countSent(list.filter((r) => done.has(r.id)));
+    const left = read<SurveyResponse[]>(PENDING, []).filter((r) => !done.has(r.id));
+    write(PENDING, left);
+    return left.length;
+  } catch {
+    return pendingCount();
+  }
 }
