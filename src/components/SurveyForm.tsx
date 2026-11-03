@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { PART1, PART2, emptyAnswers, emptyContact, wantsContact, type Answers, type Contact, type Question } from "@/lib/survey";
 
+const CONSENT_NEEDED = "To leave your name or mobile, please tick the consent box at the bottom.";
+
 // The one-page survey, laid out in two columns on an iPad like the printed form.
 export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, consent: boolean) => void }) {
   const [a, setA] = useState<Answers>(emptyAnswers);
@@ -29,7 +31,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
   const submit = () => {
     if (!a.ranked.length) return setError("Please choose at least your top priority in question 2.");
     if (!a.interest) return setError("Please answer question 9.");
-    if (hasContact && !consent) return setError("To leave your name or mobile, please tick the consent box at the bottom.");
+    if (hasContact && !consent) return setError(CONSENT_NEEDED);
     if (c.mobile.trim() && !/^(\+?63|0)9\d{9}$/.test(c.mobile.replace(/[\s-]/g, ""))) return setError("Please check the mobile number (e.g. 0917 123 4567).");
     setError("");
     onSubmit(a, c, hasContact && consent);
@@ -142,7 +144,21 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
         </button>
       </section>
 
-      {error && <p className="mt-4 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">{error}</p>}
+      {error && (
+        <div className="mt-4 flex items-center gap-3 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
+          <p className="flex-1">
+            {error}
+            {error === CONSENT_NEEDED && " Or clear your details to submit without them (you won’t get your Financial Wellness Snapshot)."}
+          </p>
+          {/* Respondents who'd rather not consent can drop their details and still submit. */}
+          {error === CONSENT_NEEDED && (
+            <button type="button" onClick={() => { setC(emptyContact()); setError(""); }}
+              className="h-9 shrink-0 rounded-lg border border-accent-line bg-white px-4 font-medium text-accent">
+              Clear details
+            </button>
+          )}
+        </div>
+      )}
       <button onClick={submit} className="mt-4 h-14 w-full rounded-xl bg-accent font-display text-lg font-semibold text-white">Submit</button>
       <p className="mt-3 text-center text-sm text-muted">
         Thank you for helping us better understand the community&rsquo;s financial priorities. Your responses will be kept confidential.
