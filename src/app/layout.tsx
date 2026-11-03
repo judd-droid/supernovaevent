@@ -8,7 +8,7 @@ const roboto = Roboto({ variable: "--font-roboto", subsets: ["latin"], weight: [
 export const metadata: Metadata = {
   title: "Financial Wellness Survey",
   description: "Supernova's booth survey.",
-  appleWebApp: { capable: true, title: "Wellness Survey", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "FWS", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
