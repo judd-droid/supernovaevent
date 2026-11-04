@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Sparkles } from "lucide-react";
+import { PrivacyPopup } from "@/components/PrivacyNotice";
 import { PART1, PART2, emptyAnswers, emptyContact, type Answers, type Contact, type Question } from "@/lib/survey";
 
 const CONSENT_NEEDED = "To leave your name or mobile, please tick the consent box at the bottom.";
@@ -14,6 +15,7 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
   const [c, setC] = useState<Contact>(emptyContact);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [privacy, setPrivacy] = useState(false);
 
   const set = <K extends keyof Answers>(k: K, v: Answers[K]) => setA((x) => ({ ...x, [k]: v }));
   const toggle = (k: "saving" | "where" | "contactBy", v: string) => setA((x) => {
@@ -137,16 +139,20 @@ export function SurveyForm({ onSubmit }: { onSubmit: (a: Answers, c: Contact, co
             </select>
           </label>
         </div>
-        <button type="button" onClick={() => setConsent((v) => !v)}
-          className={`mt-4 flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left text-sm ${consent ? "border-accent-line bg-accent-soft" : "border-line"}`}>
-          <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${consent ? "border-accent bg-accent text-white" : "border-line bg-white"}`}>
+        <div className={`mt-4 flex w-full items-start gap-3 rounded-lg border px-3 py-3 text-left text-sm ${consent ? "border-accent-line bg-accent-soft" : "border-line"}`}>
+          <button type="button" onClick={() => setConsent((v) => !v)} role="checkbox" aria-checked={consent} aria-label="I agree to be contacted"
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border ${consent ? "border-accent bg-accent text-white" : "border-line bg-white"}`}>
             {consent && <Check size={13} strokeWidth={3} />}
-          </span>
-          <span>
-            I agree that the financial advisor who gave me this survey may keep my details and contact me about my
-            financial goals, as described in the <a href="/privacy" target="_blank" className="underline">privacy notice</a>.
-          </span>
-        </button>
+          </button>
+          <p>
+            <span onClick={() => setConsent((v) => !v)} className="cursor-pointer">
+              I agree that the financial advisor who gave me this survey may keep my details and contact me about my
+              financial goals, as described in the{" "}
+            </span>
+            <button type="button" onClick={() => setPrivacy(true)} className="underline">privacy notice</button>.
+          </p>
+        </div>
+        {privacy && <PrivacyPopup onClose={() => setPrivacy(false)} />}
       </section>
 
       {error && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, Download, Plus, QrCode, Trash2 } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
 import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
@@ -128,9 +129,9 @@ export default function Admin() {
     <main className="mx-auto w-full max-w-6xl px-5 pb-16 pt-8 md:px-8">
       <header className="flex items-center justify-between">
         <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto" />
-        <a href="/" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-medium">
+        <Link href="/" className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-medium">
           <ArrowLeft size={15} /> Back to the survey
-        </a>
+        </Link>
       </header>
       <h1 className="mt-5 font-display text-2xl font-bold tracking-tight">Survey admin</h1>
       <div className="mt-2 h-1 w-12 rounded bg-accent" />
