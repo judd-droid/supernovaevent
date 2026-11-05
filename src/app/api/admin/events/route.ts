@@ -42,3 +42,18 @@ export async function POST(req: Request) {
             VALUES (${id}, ${name}, ${date}::date, ${venue}, ${survey ?? DEFAULT_SURVEY}, ${token})`;
   return Response.json({ ok: true, id });
 }
+
+// Delete an event. Only an event with no surveys left: its surveys (leads) are
+// deleted first, separately, so leads are never lost by deleting an event.
+export async function DELETE(req: Request) {
+  const sql = await db();
+  if (!sql) return notConfigured();
+  const id = new URL(req.url).searchParams.get("id") ?? "";
+  const left = await sql`SELECT count(*)::int AS n FROM responses WHERE event_id = ${id}`;
+  if (left[0]?.n > 0) {
+    return Response.json({ error: `This event still has ${left[0].n} surveys. Move them to another event or delete them first.` }, { status: 409 });
+  }
+  const gone = await sql`DELETE FROM events WHERE id = ${id} RETURNING id`;
+  if (!gone.length) return Response.json({ error: "Event not found." }, { status: 404 });
+  return Response.json({ ok: true });
+}

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Download, Plus, QrCode, Ticket, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChartColumn, CalendarX, Download, Plus, QrCode, Ticket, Trash2 } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
 import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
 
@@ -14,6 +14,8 @@ type Row = {
   id: string; event_id: string; advisor: string; created_at: string; reassigned_from: string | null;
   data: { eventName?: string; source?: string; answers: Answers; contact: Contact; consent: boolean };
 };
+
+type SortKey = "newest" | "oldest" | "interest" | "name" | "advisor";
 
 type Req = {
   id: string; response_id: string; from_advisor: string; to_advisor: string; requested_by: string; note: string;
@@ -104,6 +106,19 @@ export default function Admin() {
     load();
   };
 
+  // Delete an event itself. Only once it has no surveys, so leads are never lost this way.
+  const deleteEvent = async (e: Ev) => {
+    if (e.responses) {
+      return setNotice(`${e.name} still has ${e.responses} surveys. Move them to another event or use "Delete surveys and leads" first.`);
+    }
+    if (!window.confirm(`Delete the event ${e.name}? Its booth QR code will stop working.`)) return;
+    const res = await fetch(`/api/admin/events?id=${encodeURIComponent(e.id)}`, { method: "DELETE" });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Deleted the event ${e.name}.` : d.error ?? "Couldn't delete the event.");
+    if (filter === e.id) setFilter("");
+    load();
+  };
+
   const decide = async (id: string, approve: boolean) => {
     const res = await fetch("/api/admin/requests", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, approve }) });
     const d = await res.json().catch(() => ({}));
@@ -113,12 +128,56 @@ export default function Admin() {
 
   const owners = useMemo(() => [...new Set(rows.map((r) => r.advisor))].sort(), [rows]);
 
+  // The surveys list: filtered by advisor and sorted; the count and CSV follow it.
+  const [ownerFilter, setOwnerFilter] = useState("");
+  const [sort, setSort] = useState<SortKey>("newest");
+  const shown = useMemo(() => {
+    const interestRank = (r: Row) => {
+      const i = r.data.answers.interest ?? "";
+      const level = i === "Yes" ? 0 : i.startsWith("Maybe") ? 1 : i ? 2 : 3;
+      // Within each level, leads with contact details come first.
+      return level * 2 + (r.data.consent && (r.data.contact.name || r.data.contact.mobile) ? 0 : 1);
+    };
+    const name = (r: Row) => (r.data.contact.name || "").trim().toLowerCase();
+    const list = rows.filter((r) => !ownerFilter || r.advisor === ownerFilter);
+    const by: Record<SortKey, (a: Row, b: Row) => number> = {
+      newest: (a, b) => b.created_at.localeCompare(a.created_at),
+      oldest: (a, b) => a.created_at.localeCompare(b.created_at),
+      interest: (a, b) => interestRank(a) - interestRank(b) || b.created_at.localeCompare(a.created_at),
+      name: (a, b) => (name(a) ? 0 : 1) - (name(b) ? 0 : 1) || name(a).localeCompare(name(b)),
+      advisor: (a, b) => a.advisor.localeCompare(b.advisor) || b.created_at.localeCompare(a.created_at),
+    };
+    return [...list].sort(by[sort]);
+  }, [rows, ownerFilter, sort]);
+
+  // Move the selected surveys to one advisor.
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [pickTo, setPickTo] = useState("");
+  const togglePick = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const allShownPicked = shown.length > 0 && shown.every((r) => picked.has(r.id));
+  const pickAllShown = () => setPicked((s) => {
+    const n = new Set(s);
+    if (allShownPicked) shown.forEach((r) => n.delete(r.id)); else shown.forEach((r) => n.add(r.id));
+    return n;
+  });
+  const moveSelected = async () => {
+    const ids = [...picked];
+    if (!window.confirm(`Move ${ids.length} selected ${ids.length === 1 ? "lead" : "leads"} to ${pickTo}?`)) return;
+    const res = await fetch("/api/admin/responses", {
+      method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids, advisor: pickTo }),
+    });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Moved ${d.moved} ${d.moved === 1 ? "lead" : "leads"} to ${pickTo}.` : d.error ?? "Couldn't move the leads.");
+    if (res.ok) { setPicked(new Set()); setPickTo(""); }
+    load();
+  };
+
   const exportCsv = () => {
     const head = ["Date", "Event", "Advisor", "Name", "Mobile", "Gender", "Civil status", "Date of birth", "Consent",
       "Q1 Saving for", "Q2 Top 3", "Q3 Household role", "Q4 Dependents", "Q5 Money kept in", "Q6 Satisfaction",
       "Q7 Retirement", "Q8 Emergency cover", "Q9 Interested", "Q10 Contact by", "Preferred time"];
     const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = rows.map(({ data: { answers: a, contact: c, consent }, ...r }) => [
+    const lines = shown.map(({ data: { answers: a, contact: c, consent }, ...r }) => [
       when(r.created_at), evName.get(r.event_id) ?? r.event_id, r.advisor, c.name, c.mobile, c.gender, c.civilStatus, c.birthDate,
       consent ? "Yes" : "No", [...a.saving, a.savingOther].filter(Boolean).join("; "), a.ranked.join("; "), a.role, a.dependents,
       [...a.where, a.whereOther].filter(Boolean).join("; "), a.satisfied, a.retirement, a.emergency, a.interest,
@@ -127,7 +186,8 @@ export default function Admin() {
     const blob = new Blob(["﻿" + [head.map(cell).join(","), ...lines].join("\n")], { type: "text/csv" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `survey-${filter ? (evName.get(filter) ?? "event").replace(/[^\w-]+/g, "-") : "all"}.csv`;
+    const part = (s: string) => s.replace(/[^\w-]+/g, "-");
+    link.download = `survey-${filter ? part(evName.get(filter) ?? "event") : "all"}${ownerFilter ? `-${part(ownerFilter)}` : ""}.csv`;
     link.click();
   };
 
@@ -199,36 +259,49 @@ export default function Admin() {
         {events.length > 0 && (
           <div className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
             {events.map((e) => (
-              <div key={e.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">{e.name}</div>
-                  <div className="text-sm text-muted">{surveyLabel(e.survey)} · {e.responses} surveys · {e.active ? "Open to advisors" : "Closed"}</div>
+              <div key={e.id} className="px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">{e.name}</div>
+                    <div className="text-sm text-muted">{surveyLabel(e.survey)} · {e.responses} surveys · {e.active ? "Open to advisors" : "Closed"}</div>
+                  </div>
+                  {/* The team leader owns surveys respondents answer themselves from the booth QR code. */}
+                  <label className="flex items-center gap-2 text-sm text-muted">Team leader
+                    <select value={e.leader ?? ""} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, leader: x.target.value })}
+                      className="h-9 max-w-48 rounded-lg border border-line bg-white px-2 text-foreground">
+                      <option value="">None (booth QR off)</option>
+                      {[...(e.leader && !advisors.includes(e.leader) ? [e.leader] : []), ...advisors].map((x) => <option key={x}>{x}</option>)}
+                    </select>
+                  </label>
+                  <input key={`${e.id}-${e.leader_mobile}`} defaultValue={e.leader_mobile} inputMode="tel" placeholder="Leader's mobile"
+                    onBlur={(x) => x.target.value.trim() !== e.leader_mobile && saveEvent({ id: e.id, name: e.name, venue: e.venue, leaderMobile: x.target.value })}
+                    className="h-9 w-36 rounded-lg border border-line bg-white px-2 text-sm" />
+                  {SURVEYS.length > 1 && (
+                    <select value={e.survey} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, survey: x.target.value })}
+                      className="h-9 rounded-lg border border-line bg-white px-2 text-sm">
+                      {SURVEYS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                    </select>
+                  )}
                 </div>
-                {/* The team leader owns surveys respondents answer themselves from the QR code. */}
-                <label className="flex items-center gap-2 text-sm text-muted">Team leader
-                  <select value={e.leader ?? ""} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, leader: x.target.value })}
-                    className="h-9 max-w-48 rounded-lg border border-line bg-white px-2 text-foreground">
-                    <option value="">None (QR off)</option>
-                    {[...(e.leader && !advisors.includes(e.leader) ? [e.leader] : []), ...advisors].map((x) => <option key={x}>{x}</option>)}
-                  </select>
-                </label>
-                <input key={`${e.id}-${e.leader_mobile}`} defaultValue={e.leader_mobile} inputMode="tel" placeholder="Leader's mobile"
-                  onBlur={(x) => x.target.value.trim() !== e.leader_mobile && saveEvent({ id: e.id, name: e.name, venue: e.venue, leaderMobile: x.target.value })}
-                  className="h-9 w-36 rounded-lg border border-line bg-white px-2 text-sm" />
-                <a href={`/event-qr/${e.id}`} target="_blank" rel="noopener"
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><QrCode size={15} /> QR code</a>
-                <a href={`/raffle/${e.id}`} target="_blank" rel="noopener"
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><Ticket size={15} /> Raffle names</a>
-                {SURVEYS.length > 1 && (
-                  <select value={e.survey} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, survey: x.target.value })}
-                    className="h-9 rounded-lg border border-line bg-white px-2 text-sm">
-                    {SURVEYS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-                  </select>
-                )}
-                <button onClick={() => saveEvent({ id: e.id, name: e.name, venue: e.venue, active: !e.active })}
-                  className="h-9 rounded-full border border-line px-3 text-sm">{e.active ? "Close" : "Reopen"}</button>
-                <button onClick={() => purge(e)} aria-label={`Delete all surveys from ${e.name}`} title="Delete all surveys"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line text-accent"><Trash2 size={15} /></button>
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <Link href={`/admin/stats/${e.id}`}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-foreground px-3 text-sm font-medium text-white"><ChartColumn size={15} /> Stats</Link>
+                  <a href={`/event-qr/${e.id}`} target="_blank" rel="noopener"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><QrCode size={15} /> Booth QR code</a>
+                  <a href={`/raffle/${e.id}`} target="_blank" rel="noopener"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><Ticket size={15} /> Raffle names</a>
+                  <button onClick={() => saveEvent({ id: e.id, name: e.name, venue: e.venue, active: !e.active })}
+                    className="h-9 rounded-full border border-line px-3 text-sm">{e.active ? "Close event" : "Reopen event"}</button>
+                  <span className="flex-1" />
+                  <button onClick={() => purge(e)} disabled={!e.responses}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm text-accent disabled:opacity-40">
+                    <Trash2 size={15} /> Delete surveys and leads
+                  </button>
+                  <button onClick={() => deleteEvent(e)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-accent-line px-3 text-sm text-accent">
+                    <CalendarX size={15} /> Delete event
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -259,28 +332,60 @@ export default function Admin() {
           <button onClick={moveAll} disabled={!moveFrom || !moveTo}
             className="h-11 rounded-lg bg-foreground px-4 font-medium text-white disabled:opacity-40">Move leads</button>
         </div>
-        <p className="mt-2 text-xs text-muted">The From list shows advisors with leads in the surveys listed below. To move a single lead, open it below and change its owner or its event.</p>
+        <p className="mt-2 text-xs text-muted">The From list shows advisors with leads in the surveys listed below. To move several, tick them in the list below. To move one, open it and change its owner or its event.</p>
       </section>
 
       <section className="mt-8">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="flex-1 font-display text-lg font-semibold">Surveys ({rows.length})</h2>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className="h-10 rounded-lg border border-line bg-white px-2">
+          <h2 className="flex-1 font-display text-lg font-semibold">Surveys ({shown.length}{shown.length !== rows.length ? ` of ${rows.length}` : ""})</h2>
+          <select value={filter} onChange={(e) => setFilter(e.target.value)} aria-label="Event" className="h-10 max-w-56 rounded-lg border border-line bg-white px-2">
             <option value="">All events</option>
             {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
-          <button onClick={exportCsv} disabled={!rows.length}
+          <select value={ownerFilter} onChange={(e) => setOwnerFilter(e.target.value)} aria-label="Advisor" className="h-10 max-w-48 rounded-lg border border-line bg-white px-2">
+            <option value="">All advisors</option>
+            {[...(ownerFilter && !owners.includes(ownerFilter) ? [ownerFilter] : []), ...owners].map((o) => <option key={o}>{o}</option>)}
+          </select>
+          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort" className="h-10 rounded-lg border border-line bg-white px-2">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="interest">Most interested first</option>
+            <option value="name">Name (A to Z)</option>
+            <option value="advisor">Advisor (A to Z)</option>
+          </select>
+          <button onClick={exportCsv} disabled={!shown.length}
             className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-medium disabled:opacity-40">
             <Download size={15} /> Export CSV
           </button>
         </div>
-        <div className="mt-3 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
-          {!rows.length && <p className="px-4 py-6 text-center text-sm text-muted">No surveys yet.</p>}
-          {rows.map((r) => {
+        <div className={`sticky top-0 z-10 mt-3 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-2.5 text-sm ${picked.size ? "border-foreground bg-surface shadow-sm" : "border-line bg-surface"}`}>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={allShownPicked} onChange={pickAllShown} disabled={!shown.length} className="h-5 w-5 accent-[var(--foreground)]" />
+            Select all shown
+          </label>
+          <span className="flex-1 text-muted">{picked.size ? `${picked.size} selected` : "Tick surveys to move them together."}</span>
+          {picked.size > 0 && (
+            <>
+              <select value={pickTo} onChange={(e) => setPickTo(e.target.value)} aria-label="Move selected to"
+                className="h-9 max-w-52 rounded-lg border border-line bg-white px-2">
+                <option value="">Move to…</option>
+                {advisors.map((x) => <option key={x}>{x}</option>)}
+              </select>
+              <button onClick={moveSelected} disabled={!pickTo} className="h-9 rounded-lg bg-foreground px-4 font-medium text-white disabled:opacity-40">Move selected</button>
+              <button onClick={() => setPicked(new Set())} className="text-muted underline">Clear</button>
+            </>
+          )}
+        </div>
+        <div className="mt-2 divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+          {!shown.length && <p className="px-4 py-6 text-center text-sm text-muted">{rows.length ? "No surveys for this advisor." : "No surveys yet."}</p>}
+          {shown.map((r) => {
             const { answers: a, contact: c, consent } = r.data;
             return (
-              <div key={r.id} className="px-4 py-3">
-                <button onClick={() => setOpen(open === r.id ? null : r.id)} className="flex w-full items-start gap-3 text-left">
+              <div key={r.id} className={`px-4 py-3 ${picked.has(r.id) ? "bg-accent-soft/40" : ""}`}>
+                <div className="flex items-start gap-3">
+                <input type="checkbox" checked={picked.has(r.id)} onChange={() => togglePick(r.id)}
+                  aria-label={`Select ${c.name || "this survey"}`} className="mt-1 h-5 w-5 shrink-0 accent-[var(--foreground)]" />
+                <button onClick={() => setOpen(open === r.id ? null : r.id)} className="flex min-w-0 flex-1 items-start gap-3 text-left">
                   <div className="min-w-0 flex-1">
                     <div className="font-medium">{c.name || "No name given"}{c.mobile && <span className="text-muted"> · {c.mobile}</span>}
                       {r.data.source === "qr" && <span className="ml-2 rounded-full bg-background px-2 py-0.5 text-xs text-muted">Scanned QR</span>}</div>
@@ -293,6 +398,7 @@ export default function Admin() {
                     {r.reassigned_from && <div className="text-xs text-muted">was {r.reassigned_from}</div>}
                   </div>
                 </button>
+                </div>
                 {open === r.id && (
                   <div className="mt-3 grid gap-x-6 gap-y-1 rounded-lg bg-background p-3 text-sm md:grid-cols-2">
                     <div><b>Saving for:</b> {[...a.saving, a.savingOther].filter(Boolean).join(", ") || "-"}</div>

@@ -19,7 +19,21 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const sql = await db();
   if (!sql) return notConfigured();
-  const b = (await req.json().catch(() => ({}))) as { id?: string; from?: string; event?: string; advisor?: string; toEvent?: string };
+  const b = (await req.json().catch(() => ({}))) as { id?: string; ids?: string[]; from?: string; event?: string; advisor?: string; toEvent?: string };
+
+  // Move the selected surveys ({ ids, advisor }).
+  if (Array.isArray(b.ids)) {
+    const to = String(b.advisor ?? "").trim();
+    const ids = b.ids.filter((x) => typeof x === "string").slice(0, 2000);
+    if (!to || !ids.length) return Response.json({ error: "Choose surveys and an advisor." }, { status: 400 });
+    const moved = await sql`UPDATE responses SET reassigned_from = COALESCE(reassigned_from, advisor), advisor = ${to}
+                            WHERE id = ANY(${ids}) AND advisor <> ${to} RETURNING id`;
+    const done = moved.map((r) => r.id as string);
+    if (done.length) {
+      await sql`UPDATE reassign_requests SET status = 'superseded', decided_at = now() WHERE response_id = ANY(${done}) AND status = 'pending'`;
+    }
+    return Response.json({ ok: true, moved: done.length });
+  }
 
   // Correct the event one survey belongs to ({ id, toEvent }).
   if (b.id && b.toEvent) {
