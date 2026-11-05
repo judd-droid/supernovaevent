@@ -10,7 +10,19 @@ export type StatRow = {
 };
 
 export type Count = { label: string; n: number };
-export type FollowUp = { row: StatRow; score: number; reasons: string[] };
+export type Reason = { text: string; pts: number };
+export type FollowUp = { row: StatRow; score: number; reasons: Reason[] };
+
+// The points behind "Who to call first", for the (i) tooltip.
+export const POINTS: Reason[] = [
+  { text: "Said yes to a conversation", pts: 6 },
+  { text: "Said maybe (wants more information)", pts: 3 },
+  { text: "Main income earner with dependents", pts: 2 },
+  { text: "Earns (alone or sharing) with dependents, no insurance plan", pts: 2 },
+  { text: "Savings would last less than a month, or not sure", pts: 1 },
+  { text: "Retirement not started or not considered", pts: 1 },
+  { text: "A top-3 goal they aren't saving for yet", pts: 1 },
+];
 
 const INSURANCE = "Insurance plans with savings or investment components";
 const BANK = "Bank savings or time deposits";
@@ -76,19 +88,18 @@ export const hourLabel = (h: number) => `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}
 // Why this lead is worth an early call, strongest first.
 function followUp(r: StatRow): FollowUp {
   const a = r.data.answers;
-  let score = isYes(a) ? 6 : isMaybe(a) ? 3 : 0;
-  const reasons: string[] = [];
-  if (isYes(a)) reasons.push("Said yes to a conversation");
-  else if (isMaybe(a)) reasons.push("Wants more information");
+  const reasons: Reason[] = [];
+  if (isYes(a)) reasons.push({ text: "Said yes to a conversation", pts: 6 });
+  else if (isMaybe(a)) reasons.push({ text: "Wants more information", pts: 3 });
   const d = deps(a.dependents);
   const insured = a.where.includes(INSURANCE);
-  if (a.role.startsWith("I am the primary") && d > 0) { score += 2; reasons.push(`Breadwinner, ${a.dependents === "3 or more" ? "3+" : d} ${d === 1 ? "dependent" : "dependents"}`); }
-  if (earner(a) && d > 0 && !insured) { score += 2; reasons.push("No insurance plan yet"); }
-  if (a.emergency === "Less than one month" || a.emergency === "I am not sure.") { score += 1; reasons.push("Thin emergency cushion"); }
-  if (a.retirement.startsWith("I intend") || a.retirement.startsWith("I have not")) { score += 1; reasons.push("Retirement not started"); }
+  if (a.role.startsWith("I am the primary") && d > 0) reasons.push({ text: `Breadwinner, ${a.dependents === "3 or more" ? "3+" : d} ${d === 1 ? "dependent" : "dependents"}`, pts: 2 });
+  if (earner(a) && d > 0 && !insured) reasons.push({ text: "No insurance plan yet", pts: 2 });
+  if (a.emergency === "Less than one month" || a.emergency === "I am not sure.") reasons.push({ text: "Thin emergency cushion", pts: 1 });
+  if (a.retirement.startsWith("I intend") || a.retirement.startsWith("I have not")) reasons.push({ text: "Retirement not started", pts: 1 });
   const gap = a.ranked.find((g) => !a.saving.includes(g));
-  if (gap) { score += 1; reasons.push(`Not saving yet for: ${gap}`); }
-  return { row: r, score, reasons };
+  if (gap) reasons.push({ text: `Not saving yet for: ${gap}`, pts: 1 });
+  return { row: r, score: reasons.reduce((s, x) => s + x.pts, 0), reasons };
 }
 
 export type Group = { key: string; label: string; why: string; rows: StatRow[] };

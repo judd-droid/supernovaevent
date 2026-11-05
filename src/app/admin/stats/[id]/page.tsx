@@ -2,8 +2,8 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Printer } from "lucide-react";
-import { channel, CHANNEL_LABEL, contactable, pct, report, short, type Count, type StatRow } from "@/lib/stats";
+import { ArrowLeft, Info, Printer } from "lucide-react";
+import { channel, CHANNEL_LABEL, contactable, pct, POINTS, report, short, type Count, type StatRow } from "@/lib/stats";
 import { surveyLabel } from "@/lib/surveys";
 
 type Ev = { id: string; name: string; date: string | null; venue: string; active: boolean; survey: string; leader: string | null };
@@ -12,10 +12,37 @@ type Ev = { id: string; name: string; date: string | null; venue: string; active
 const BAR = "#3d444b";
 const HL = "var(--accent)";
 
-function Card({ title, note, children, wide }: { title: string; note?: string; children: React.ReactNode; wide?: boolean }) {
+// The (i) beside "Who to call first": the point system, on hover, focus or tap.
+function PointsInfo() {
+  const [open, setOpen] = useState(false);
   return (
-    <section className={`break-inside-avoid rounded-xl border border-line bg-surface p-5 ${wide ? "md:col-span-2" : ""}`}>
-      <h2 className="font-display text-base font-semibold">{title}</h2>
+    <span className="inline-flex print:hidden" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button type="button" onClick={() => setOpen((v) => !v)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
+        aria-label="How points are counted" aria-expanded={open}
+        className="inline-flex h-6 w-6 items-center justify-center rounded-full text-muted hover:text-foreground">
+        <Info size={16} />
+      </button>
+      {open && (
+        <span role="tooltip" className="absolute left-5 top-12 z-20 w-[min(24rem,calc(100%-2.5rem))] rounded-lg border border-line bg-surface p-3 text-left font-sans text-sm font-normal leading-snug shadow-lg">
+          <span className="block font-medium">How points are counted</span>
+          <span className="mt-2 grid gap-1">
+            {POINTS.map((p) => (
+              <span key={p.text} className="flex justify-between gap-3">
+                <span>{p.text}</span><span className="shrink-0 tabular-nums text-muted">+{p.pts}</span>
+              </span>
+            ))}
+          </span>
+          <span className="mt-2 block text-muted">Only leads who left contact details are listed. Highest points first; ties go to whoever answered first.</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+function Card({ title, info, note, children, wide }: { title: string; info?: React.ReactNode; note?: string; children: React.ReactNode; wide?: boolean }) {
+  return (
+    <section className={`relative break-inside-avoid rounded-xl border border-line bg-surface p-5 ${wide ? "md:col-span-2" : ""}`}>
+      <h2 className="flex items-center gap-1.5 font-display text-base font-semibold">{title}{info}</h2>
       {note && <p className="mt-0.5 text-sm text-muted">{note}</p>}
       <div className="mt-4">{children}</div>
     </section>
@@ -151,15 +178,16 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
               {r.byHour.length ? <Columns data={r.byHour} /> : <p className="text-sm text-muted">No times recorded.</p>}
             </Card>
 
-            <Card title="Who to call first" note="Leads ranked by interest and need. Reasons show what to open the conversation with." wide>
+            <Card title="Who to call first" info={<PointsInfo />} note="Leads ranked by points for interest and need; ties go to whoever answered first. Reasons show what to open the conversation with." wide>
               {!r.follow.length ? <p className="text-sm text-muted">No leads with contact details yet.</p> : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[44rem] text-left text-sm">
+                    <table className="w-full min-w-[48rem] text-left text-sm">
                       <thead className="text-muted">
                         <tr className="border-b border-line">
                           <th className="py-2 pr-3 font-medium">#</th><th className="py-2 pr-3 font-medium">Name</th><th className="py-2 pr-3 font-medium">Mobile</th>
-                          <th className="py-2 pr-3 font-medium">Owner</th><th className="py-2 pr-3 font-medium">Prefers</th><th className="py-2 font-medium">Why call</th>
+                          <th className="py-2 pr-3 font-medium">Owner</th><th className="py-2 pr-3 font-medium">Prefers</th>
+                          <th className="py-2 pr-3 text-right font-medium">Points</th><th className="py-2 font-medium">Why call</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -172,7 +200,12 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                               <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{c.mobile || "-"}</td>
                               <td className="py-2 pr-3">{f.row.advisor}</td>
                               <td className="py-2 pr-3 text-muted">{[a.contactBy.map(short).join(", "), a.contactWhen].filter(Boolean).join(" · ") || "-"}</td>
-                              <td className="py-2">{f.reasons.join(" · ")}</td>
+                              <td className="py-2 pr-3 text-right font-semibold tabular-nums">{f.score}</td>
+                              <td className="py-2">
+                                {f.reasons.map((x, j) => (
+                                  <span key={x.text}>{j > 0 && " · "}{x.text} <span className="whitespace-nowrap tabular-nums text-muted">+{x.pts}</span></span>
+                                ))}
+                              </td>
                             </tr>
                           );
                         })}
