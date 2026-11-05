@@ -34,3 +34,53 @@ body {
 textarea, input, select {
   font-size: 16px; /* no iOS zoom on focus */
 }
+
+/* Printing (the Stats report's "Print or save as PDF"). A4 or Letter portrait:
+   white page, colors kept, two columns of charts, tables at full width, and
+   sections kept whole across page breaks where they fit. */
+@media print {
+  @page {
+    margin: 14mm 12mm 16mm;
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 8pt Roboto, Arial, sans-serif; color: #666e75; }
+  }
+  html, body { background: #fff !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { font-size: 9.5pt; }
+
+  /* The report sits on plain paper: no outer panel, sections divided by hairlines. */
+  [data-panel] { display: block !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; overflow: visible !important; margin-top: 14pt !important; }
+  [data-tiles] { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  [data-tiles] > * { padding: 8pt 10pt !important; grid-column: auto !important; }
+  [data-tiles] > * > div:nth-child(2) { font-size: 18pt !important; line-height: 1.15; }
+  [data-tiles] > * > div:not(:nth-child(2)) { font-size: 8pt !important; }
+  [data-takeaways] { padding: 12pt 0 4pt !important; background: transparent !important; break-inside: avoid; }
+  [data-takeaways] ul { font-size: 9.5pt !important; gap: 3pt !important; }
+
+  [data-cards] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; column-gap: 22pt !important; row-gap: 0 !important; background: transparent !important; }
+  [data-card] { padding: 11pt 0 10pt !important; background: transparent !important; border-top: 1px solid var(--line); }
+  [data-card][data-wide] { grid-column: 1 / -1 !important; }
+  [data-card]:not([data-long]) { break-inside: avoid; }
+  [data-card][data-new-page] { break-before: page; border-top: 0; padding-top: 0 !important; }
+  [data-bar-label] { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2; }
+  [data-card] h2 { font-size: 11pt !important; break-after: avoid; }
+  [data-card] h2 + p { font-size: 8pt !important; break-after: avoid; }
+  [data-card] > div:last-child { margin-top: 8pt !important; }
+
+  /* Bars: narrower labels and smaller type so a half-page column fits them. */
+  [data-bar-row] { grid-template-columns: minmax(0, 8.2rem) 1fr auto !important; font-size: 8pt !important; gap: 6pt !important; }
+  [data-bar-row] > div:last-child { width: auto !important; min-width: 3.6rem; }
+  [data-card] .grid.gap-2\.5 { gap: 4pt !important; }
+
+  /* Tables: every column on the page, rows never split. */
+  [data-table] { overflow: visible !important; }
+  [data-table] table { min-width: 0 !important; font-size: 8pt !important; }
+  [data-table] th, [data-table] td { padding-top: 3.5pt !important; padding-bottom: 3.5pt !important; padding-right: 9pt !important; }
+  [data-table] thead { display: table-header-group; }
+  [data-table] tr { break-inside: avoid; }
+
+  [data-groups] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  [data-groups] > * { padding: 8pt 10pt !important; break-inside: avoid; }
+  [data-groups] > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  [data-groups] .text-2xl { font-size: 15pt !important; }
+  [data-groups] .text-sm { font-size: 8pt !important; }
+}

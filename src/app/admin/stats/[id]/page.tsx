@@ -39,9 +39,11 @@ function PointsInfo() {
   );
 }
 
-function Card({ title, info, note, children, wide }: { title: string; info?: React.ReactNode; note?: string; children: React.ReactNode; wide?: boolean }) {
+// long: may run across pages when printed (the call list); newPage: printing starts it on a fresh page.
+function Card({ title, info, note, children, wide, long, newPage }: { title: string; info?: React.ReactNode; note?: string; children: React.ReactNode; wide?: boolean; long?: boolean; newPage?: boolean }) {
   return (
-    <section className={`relative break-inside-avoid bg-surface p-5 ${wide ? "md:col-span-2" : ""}`}>
+    <section data-card data-wide={wide ? "" : undefined} data-long={long ? "" : undefined} data-new-page={newPage ? "" : undefined}
+      className={`relative bg-surface p-5 ${wide ? "md:col-span-2" : ""} ${long ? "" : "break-inside-avoid"}`}>
       <h2 className="flex items-center gap-1.5 font-display text-base font-semibold">{title}{info}</h2>
       {note && <p className="mt-0.5 text-sm text-muted">{note}</p>}
       <div className="mt-4">{children}</div>
@@ -66,8 +68,8 @@ function Bars({ data, of, hl, max }: { data: Count[]; of: number; hl?: string; m
   return (
     <div className="grid gap-2.5">
       {data.map((d) => (
-        <div key={d.label} className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-3 text-sm" title={`${d.label}: ${d.n} (${pct(d.n, of)}%)`}>
-          <div className="truncate text-foreground">{d.label}</div>
+        <div key={d.label} data-bar-row className="grid grid-cols-[minmax(0,11rem)_1fr_auto] items-center gap-3 text-sm" title={`${d.label}: ${d.n} (${pct(d.n, of)}%)`}>
+          <div data-bar-label className="truncate text-foreground">{d.label}</div>
           <div className="h-3">
             {d.n > 0 && <div className="h-3 rounded-r" style={{ width: `${Math.max(2, (d.n / top) * 100)}%`, background: d.label === hl ? HL : BAR }} />}
           </div>
@@ -137,7 +139,16 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
         </button>
       </header>
 
-      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight">{ev.name}</h1>
+      {/* Printed letterhead: logo, report name and when it was printed. */}
+      <div className="hidden items-center justify-between border-b border-line pb-3 print:flex">
+        <img src="/supernova-logo.png" alt="Supernova" className="h-6 w-auto" />
+        <div className="text-right text-[10px] leading-tight text-muted">
+          <div className="font-medium text-foreground">Event report</div>
+          <div>Printed {new Intl.DateTimeFormat("en-PH", { timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short" }).format(new Date())}</div>
+        </div>
+      </div>
+
+      <h1 className="mt-6 font-display text-2xl font-bold tracking-tight print:mt-4 print:text-xl">{ev.name}</h1>
       <div className="mt-2 h-1 w-12 rounded bg-accent" />
       <p className="mt-3 text-sm text-muted">
         Event report · {surveyLabel(ev.survey)}{ev.leader ? ` · Team leader: ${ev.leader}` : ""} · {ev.active ? "Open" : "Closed"}
@@ -148,8 +159,8 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
       ) : (
         <>
           {/* The whole report is one panel; sections are separated by hairlines, not gaps. */}
-          <div className="mt-6 grid gap-px overflow-hidden rounded-xl border border-line bg-line">
-          <div className="grid grid-cols-2 gap-px md:grid-cols-5">
+          <div data-panel className="mt-6 grid gap-px overflow-hidden rounded-xl border border-line bg-line">
+          <div data-tiles className="grid grid-cols-2 gap-px md:grid-cols-5">
             <Tile label="Surveys" value={r.total} />
             <Tile label="Leads" value={r.leads} sub={`${pct(r.leads, r.total)}% left details`} />
             <Tile label="Said yes" value={r.yes} sub={`${pct(r.yes, r.total)}% of surveys`} accent />
@@ -158,7 +169,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           {r.takeaways.length > 0 && (
-            <section className="bg-surface p-5">
+            <section data-takeaways className="bg-surface p-5">
               <h2 className="font-display text-base font-semibold">Takeaways</h2>
               <ul className="mt-3 grid list-disc gap-1.5 pl-5 text-[15px] leading-relaxed">
                 {r.takeaways.map((t) => <li key={t}>{t}</li>)}
@@ -166,7 +177,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             </section>
           )}
 
-          <div className="grid gap-px md:grid-cols-2">
+          <div data-cards className="grid gap-px md:grid-cols-2">
             <Card title="From survey to conversation" note="How many respondents reached each step.">
               <Bars of={r.total} hl="Said yes" data={[
                 { label: "Answered the survey", n: r.total },
@@ -180,10 +191,10 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
               {r.byHour.length ? <Columns data={r.byHour} /> : <p className="text-sm text-muted">No times recorded.</p>}
             </Card>
 
-            <Card title="Who to call first" info={<PointsInfo />} note="Leads ranked by points for interest and need; ties go to whoever answered first. Reasons show what to open the conversation with." wide>
+            <Card title="Who to call first" info={<PointsInfo />} long newPage note="Leads ranked by points for interest and need; ties go to whoever answered first. Reasons show what to open the conversation with." wide>
               {!r.follow.length ? <p className="text-sm text-muted">No leads with contact details yet.</p> : (
                 <>
-                  <div className="overflow-x-auto">
+                  <div data-table className="overflow-x-auto">
                     <table className="w-full min-w-[50rem] text-left text-sm">
                       <thead className="text-muted">
                         <tr className="border-b border-line">
@@ -219,12 +230,17 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                       {allFollow ? "Show the top 15" : `Show all ${r.follow.length}`}
                     </button>
                   )}
+                  {r.follow.length > 15 && !allFollow && (
+                    <p className="mt-2 hidden text-xs text-muted print:block">
+                      The top 15 of {r.follow.length} leads. To print them all, tap &ldquo;Show all&rdquo; on the report before printing.
+                    </p>
+                  )}
                 </>
               )}
             </Card>
 
             <Card title="By advisor" note="Surveys each advisor owns now, including leads moved to them." wide>
-              <div className="overflow-x-auto">
+              <div data-table className="overflow-x-auto">
                 <table className="w-full min-w-[36rem] text-left text-sm">
                   <thead className="text-muted">
                     <tr className="border-b border-line">
@@ -256,7 +272,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
 
             {r.channels.length > 1 && (
               <Card title="How surveys came in" note="Where respondents answered, and how often each way left details." wide>
-                <div className="overflow-x-auto">
+                <div data-table className="overflow-x-auto">
                   <table className="w-full min-w-[30rem] text-left text-sm">
                     <thead className="text-muted">
                       <tr className="border-b border-line">
@@ -280,7 +296,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             )}
 
             <Card title="Goals: priority versus action" note="How many rank each goal in their top 3, and how many of them aren't saving for it yet. The gap is the opening." wide>
-              <div className="overflow-x-auto">
+              <div data-table className="overflow-x-auto">
                 <table className="w-full min-w-[40rem] text-left text-sm">
                   <thead className="text-muted">
                     <tr className="border-b border-line">
@@ -314,7 +330,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             </Card>
 
             <Card title="Opportunity groups" note="Respondents whose answers point to a clear need. Some fall in more than one group." wide>
-              <div className="grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
+              <div data-groups className="grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
                 {r.groups.filter((g) => g.rows.length).map((g, i, list) => {
                   const leads = g.rows.filter(contactable);
                   const warm = leads.filter((x) => x.data.answers.interest === "Yes" || x.data.answers.interest.startsWith("Maybe"));
