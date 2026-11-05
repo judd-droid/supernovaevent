@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Download, Plus, QrCode, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Plus, QrCode, Ticket, Trash2 } from "lucide-react";
 import type { Answers, Contact } from "@/lib/survey";
 import { DEFAULT_SURVEY, SURVEYS, surveyLabel } from "@/lib/surveys";
 
@@ -211,6 +211,8 @@ export default function Admin() {
                   className="h-9 w-36 rounded-lg border border-line bg-white px-2 text-sm" />
                 <a href={`/event-qr/${e.id}`} target="_blank" rel="noopener"
                   className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><QrCode size={15} /> QR code</a>
+                <a href={`/raffle/${e.id}`} target="_blank" rel="noopener"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-line px-3 text-sm"><Ticket size={15} /> Raffle names</a>
                 {SURVEYS.length > 1 && (
                   <select value={e.survey} onChange={(x) => saveEvent({ id: e.id, name: e.name, venue: e.venue, survey: x.target.value })}
                     className="h-9 rounded-lg border border-line bg-white px-2 text-sm">
