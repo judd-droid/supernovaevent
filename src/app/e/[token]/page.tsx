@@ -9,7 +9,8 @@ import type { SurveyResponse } from "@/lib/survey";
 type Ev = { name: string; survey: string; leader: string; leaderMobile: string };
 
 // The self-service survey a respondent opens on their own phone from the event's
-// QR code. No sign-in. The survey belongs to the event's team leader; with
+// QR code. No sign-in. The survey belongs to the event's team leader (or, from an
+// advisor's own code, to that advisor); with
 // contact details it opens their Financial Wellness Snapshot, otherwise a thank-you.
 export default function SelfService({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -18,9 +19,16 @@ export default function SelfService({ params }: { params: Promise<{ token: strin
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
   const [thanks, setThanks] = useState(false);
+  // An advisor's own code adds a, m and s (signed); they travel with the answers.
+  const [own, setOwn] = useState<{ a?: string; m?: string; s?: string }>({});
 
   useEffect(() => {
-    fetch(`/api/public/event?t=${encodeURIComponent(token)}`)
+    const q = new URLSearchParams(window.location.search);
+    const o = { a: q.get("a") ?? undefined, m: q.get("m") ?? undefined, s: q.get("s") ?? undefined };
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the address is only readable after mount
+    setOwn(o);
+    const extra = new URLSearchParams(Object.entries(o).filter(([, v]) => v) as [string, string][]).toString();
+    fetch(`/api/public/event?t=${encodeURIComponent(token)}${extra ? `&${extra}` : ""}`)
       .then(async (r) => {
         const d = await r.json().catch(() => ({}));
         if (r.ok) setEv(d as Ev);
@@ -63,7 +71,7 @@ export default function SelfService({ params }: { params: Promise<{ token: strin
             try {
               const res = await fetch("/api/public/responses", {
                 method: "POST", headers: { "content-type": "application/json" },
-                body: JSON.stringify({ t: token, id: r.id, answers, contact, consent }),
+                body: JSON.stringify({ t: token, id: r.id, answers, contact, consent, ...own }),
               });
               const d = await res.json().catch(() => ({}));
               if (!res.ok) throw new Error(d.error ?? "");

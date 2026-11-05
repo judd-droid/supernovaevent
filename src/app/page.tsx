@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CalendarDays, CloudOff, Eye, EyeOff, QrCode, ShieldCheck, UserRound } from "lucide-react";
 import { SetupScreen } from "@/components/SetupScreen";
 import { ResultScreen } from "@/components/ResultScreen";
+import { MyQr } from "@/components/MyQr";
 import { getMobile, getSetup, pendingCount, queue, saveSetup, sync, type Setup } from "@/lib/device";
 import { DEFAULT_SURVEY, type SurveyId } from "@/lib/surveys";
 import { FORMS } from "@/lib/forms";
@@ -17,6 +18,8 @@ export default function Home() {
   const [pending, setPending] = useState(0);
   const [navHidden, setNavHidden] = useState(false);
   const [admin, setAdmin] = useState(false);
+  const [myQr, setMyQr] = useState(false);
+  const closeMyQr = useCallback(() => setMyQr(false), []);
 
   const refresh = useCallback(() => setPending(pendingCount()), []);
 
@@ -92,10 +95,10 @@ export default function Home() {
               <ShieldCheck size={17} />
             </a>
           )}
-          <a href={`/event-qr/${setup.eventId}`} target="_blank" rel="noopener" aria-label="Event QR code" title="Event QR code"
+          <button onClick={() => setMyQr(true)} aria-label="Your QR code" title="Your QR code"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
             <QrCode size={17} />
-          </a>
+          </button>
           <button onClick={() => setChanging("all")} aria-label="Change event" title="Change event"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-muted">
             <CalendarDays size={17} />
@@ -106,6 +109,8 @@ export default function Home() {
           </button>
         </header>
       )}
+
+      {myQr && <MyQr eventId={setup.eventId} advisor={setup.advisor} mobile={getMobile(setup.advisor)} onClose={closeMyQr} />}
 
       {done ? (
         // The Quick Result is for respondents who left their contact details; everyone else is thanked.

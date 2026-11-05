@@ -1,14 +1,26 @@
 import { db, notConfigured } from "@/lib/db";
+import { ADMIN_COOKIE, hasCookie } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-// The event's self-service link, for its QR code. Behind the team passcode.
+// The event's own (booth) QR code; its scans go to the team leader. Only the AD
+// and the event's team leader (the advisor signed in on this device) can open it;
+// every other advisor uses their own QR code.
 export async function GET(req: Request) {
   const sql = await db();
   if (!sql) return notConfigured();
-  const id = new URL(req.url).searchParams.get("id") ?? "";
+  const p = new URL(req.url).searchParams;
+  const id = p.get("id") ?? "";
   const rows = await sql`SELECT name, public_token, leader, active FROM events WHERE id = ${id}`;
   const e = rows[0];
   if (!e) return Response.json({ error: "Event not found." }, { status: 404 });
+  const cookie = req.headers.get("cookie") ?? "";
+  const adminValue = cookie.split(/;\s*/).find((c) => c.startsWith(`${ADMIN_COOKIE}=`))?.slice(ADMIN_COOKIE.length + 1);
+  const admin = await hasCookie("admin", adminValue ? decodeURIComponent(adminValue) : undefined);
+  const advisor = (p.get("advisor") ?? "").trim().toLowerCase();
+  const isLeader = !!e.leader && advisor === String(e.leader).toLowerCase();
+  if (!admin && !isLeader) {
+    return Response.json({ error: "Only the event's team leader can open the booth QR code. Use your own QR code from the top bar." }, { status: 403 });
+  }
   return Response.json({ name: e.name, token: e.public_token, leader: e.leader, active: e.active });
 }

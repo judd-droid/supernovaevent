@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Download, Printer } from "lucide-react";
+import { getSetup } from "@/lib/device";
 
 type Info = { name: string; token: string; leader: string | null; active: boolean };
 
@@ -15,7 +16,8 @@ export default function EventQr({ params }: { params: Promise<{ id: string }> })
   const [qr, setQr] = useState("");
 
   useEffect(() => {
-    fetch(`/api/event-qr?id=${encodeURIComponent(id)}`)
+    const advisor = getSetup()?.advisor ?? "";
+    fetch(`/api/event-qr?id=${encodeURIComponent(id)}&advisor=${encodeURIComponent(advisor)}`)
       .then(async (r) => {
         const d = await r.json().catch(() => ({}));
         if (!r.ok) return setError(d.error ?? "Couldn't load this event.");
