@@ -43,10 +43,6 @@ export function MyQr({ eventId, advisor, mobile, onClose }: {
         <X size={20} />
       </button>
       <div className="mx-auto flex min-h-full w-full max-w-md flex-col items-center px-6 py-10 text-center">
-        <h1 className="mt-4 font-display text-2xl font-bold leading-snug tracking-tight">
-          {info?.name ?? " "} <span className="whitespace-nowrap">via {advisor}</span>
-        </h1>
-        <div className="mx-auto mt-3 h-1 w-12 rounded bg-accent" />
 
         {error && <p className="mt-6 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">{error}</p>}
         {info && !info.active && (
@@ -55,12 +51,13 @@ export function MyQr({ eventId, advisor, mobile, onClose }: {
           </p>
         )}
 
-        <p className="mt-6 inline-block rounded-lg bg-accent px-4 py-2 font-semibold text-white">
+        <p className="mt-4 inline-block rounded-lg bg-accent px-4 py-2 font-semibold text-white">
           Get your FREE Financial Wellness Snapshot!
         </p>
         {qr ? <img src={qr} alt={`QR code for ${advisor}'s survey`} className="mt-4 w-full max-w-[360px]" />
           : <div className="mt-4 aspect-square w-full max-w-[360px] rounded-xl bg-background" />}
         <p className="mt-3 text-sm text-muted">Scan with your phone camera to answer the survey.</p>
+        {info && <p className="mt-2 text-xs text-muted">{info.name} via {advisor}</p>}
 
         {info?.isLeader && (
           <a href={`/event-qr/${eventId}`} target="_blank" rel="noopener"
