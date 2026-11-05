@@ -153,8 +153,12 @@ export function report(rows: StatRow[], eventDate: Date) {
 
   // Who they are
   const ages = rows.map((r) => age(r.data.contact.birthDate, eventDate)).filter((x): x is number => x !== null);
-  const ageBands: Count[] = [["Under 25", 0, 24], ["25 to 34", 25, 34], ["35 to 44", 35, 44], ["45 to 54", 45, 54], ["55 and over", 55, 200]]
-    .map(([label, lo, hi]) => ({ label: label as string, n: ages.filter((a) => a >= (lo as number) && a <= (hi as number)).length }));
+  // Under 21, then 21 to 25, 26 to 30, and on in fives up to the oldest respondent.
+  const oldest = Math.max(25, ...ages);
+  const ageBands: Count[] = [{ label: "Under 21", n: ages.filter((a) => a < 21).length }];
+  for (let lo = 21; lo <= oldest; lo += 5) {
+    ageBands.push({ label: `${lo} to ${lo + 4}`, n: ages.filter((a) => a >= lo && a <= lo + 4).length });
+  }
   const tally = (key: "gender" | "civilStatus") => {
     const m = new Map<string, number>();
     rows.forEach((r) => { const v = r.data.contact[key]; if (v) m.set(v, (m.get(v) ?? 0) + 1); });
