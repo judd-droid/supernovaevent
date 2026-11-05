@@ -182,12 +182,12 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
               {!r.follow.length ? <p className="text-sm text-muted">No leads with contact details yet.</p> : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[48rem] text-left text-sm">
+                    <table className="w-full min-w-[58rem] text-left text-sm">
                       <thead className="text-muted">
                         <tr className="border-b border-line">
-                          <th className="py-2 pr-3 font-medium">#</th><th className="py-2 pr-3 font-medium">Name</th><th className="py-2 pr-3 font-medium">Mobile</th>
-                          <th className="py-2 pr-3 font-medium">Owner</th><th className="py-2 pr-3 font-medium">Prefers</th>
-                          <th className="py-2 pr-3 text-right font-medium">Points</th><th className="py-2 font-medium">Why call</th>
+                          <th className="py-2.5 pr-6 font-medium">#</th><th className="py-2.5 pr-6 font-medium">Name</th><th className="py-2.5 pr-6 font-medium">Mobile</th>
+                          <th className="py-2.5 pr-6 font-medium">Owner</th><th className="py-2.5 pr-6 font-medium">Prefers</th>
+                          <th className="py-2.5 pr-6 text-right font-medium">Points</th><th className="py-2.5 font-medium">Why call</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -195,13 +195,13 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                           const a = f.row.data.answers, c = f.row.data.contact;
                           return (
                             <tr key={f.row.id} className="border-b border-line align-top last:border-0">
-                              <td className="py-2 pr-3 tabular-nums text-muted">{i + 1}</td>
-                              <td className="py-2 pr-3 font-medium">{c.name || "No name"}</td>
-                              <td className="whitespace-nowrap py-2 pr-3 tabular-nums">{c.mobile || "-"}</td>
-                              <td className="py-2 pr-3">{f.row.advisor}</td>
-                              <td className="py-2 pr-3 text-muted">{[a.contactBy.map(short).join(", "), a.contactWhen].filter(Boolean).join(" · ") || "-"}</td>
-                              <td className="py-2 pr-3 text-right font-semibold tabular-nums">{f.score}</td>
-                              <td className="py-2">
+                              <td className="py-2.5 pr-6 tabular-nums text-muted">{i + 1}</td>
+                              <td className="py-2.5 pr-6 font-medium">{c.name || "No name"}</td>
+                              <td className="whitespace-nowrap py-2.5 pr-6 tabular-nums">{c.mobile || "-"}</td>
+                              <td className="py-2.5 pr-6">{f.row.advisor}</td>
+                              <td className="py-2.5 pr-6 text-muted">{[a.contactBy.map(short).join(", "), a.contactWhen].filter(Boolean).join(" · ") || "-"}</td>
+                              <td className="py-2.5 pr-6 text-right font-semibold tabular-nums">{f.score}</td>
+                              <td className="py-2.5">
                                 {f.reasons.map((x, j) => (
                                   <span key={x.text}>{j > 0 && " · "}{x.text} <span className="whitespace-nowrap tabular-nums text-muted">+{x.pts}</span></span>
                                 ))}
@@ -226,25 +226,25 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                 <table className="w-full min-w-[36rem] text-left text-sm">
                   <thead className="text-muted">
                     <tr className="border-b border-line">
-                      <th className="py-2 pr-3 font-medium">Advisor</th><th className="py-2 pr-3 font-medium">Surveys</th>
-                      <th className="py-2 pr-3 font-medium">Leads</th><th className="py-2 pr-3 font-medium">Left details</th>
-                      <th className="py-2 pr-3 font-medium">Yes</th><th className="py-2 font-medium">Maybe</th>
+                      <th className="py-2.5 pr-6 font-medium">Advisor</th><th className="py-2.5 pr-6 font-medium">Surveys</th>
+                      <th className="py-2.5 pr-6 font-medium">Leads</th><th className="py-2.5 pr-6 font-medium">Left details</th>
+                      <th className="py-2.5 pr-6 font-medium">Yes</th><th className="py-2.5 font-medium">Maybe</th>
                     </tr>
                   </thead>
                   <tbody>
                     {r.byAdvisor.map((a) => (
                       <tr key={a.advisor} className="border-b border-line last:border-0">
-                        <td className="py-2 pr-3 font-medium">{a.advisor}{a.moved ? <span className="ml-1 text-xs font-normal text-muted">({a.moved} moved in)</span> : null}</td>
-                        <td className="py-2 pr-3">
+                        <td className="py-2.5 pr-6 font-medium">{a.advisor}{a.moved ? <span className="ml-1 text-xs font-normal text-muted">({a.moved} moved in)</span> : null}</td>
+                        <td className="py-2.5 pr-6">
                           <div className="flex items-center gap-2">
                             <div className="h-2.5 rounded-r" style={{ width: `${(a.surveys / r.byAdvisor[0].surveys) * 6}rem`, background: BAR }} />
                             <span className="tabular-nums">{a.surveys}</span>
                           </div>
                         </td>
-                        <td className="py-2 pr-3 tabular-nums">{a.leads}</td>
-                        <td className="py-2 pr-3 tabular-nums text-muted">{pct(a.leads, a.surveys)}%</td>
-                        <td className="py-2 pr-3 tabular-nums">{a.yes}</td>
-                        <td className="py-2 tabular-nums">{a.maybe}</td>
+                        <td className="py-2.5 pr-6 tabular-nums">{a.leads}</td>
+                        <td className="py-2.5 pr-6 tabular-nums text-muted">{pct(a.leads, a.surveys)}%</td>
+                        <td className="py-2.5 pr-6 tabular-nums">{a.yes}</td>
+                        <td className="py-2.5 tabular-nums">{a.maybe}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -258,17 +258,17 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                   <table className="w-full min-w-[30rem] text-left text-sm">
                     <thead className="text-muted">
                       <tr className="border-b border-line">
-                        <th className="py-2 pr-3 font-medium">Channel</th><th className="py-2 pr-3 font-medium">Surveys</th>
-                        <th className="py-2 pr-3 font-medium">Left details</th><th className="py-2 font-medium">Said yes</th>
+                        <th className="py-2.5 pr-6 font-medium">Channel</th><th className="py-2.5 pr-6 font-medium">Surveys</th>
+                        <th className="py-2.5 pr-6 font-medium">Left details</th><th className="py-2.5 font-medium">Said yes</th>
                       </tr>
                     </thead>
                     <tbody>
                       {r.channels.map((c) => (
                         <tr key={c.key} className="border-b border-line last:border-0">
-                          <td className="py-2 pr-3 font-medium">{c.label}</td>
-                          <td className="py-2 pr-3 tabular-nums">{c.surveys} <span className="text-muted">· {pct(c.surveys, r.total)}%</span></td>
-                          <td className="py-2 pr-3 tabular-nums">{pct(c.leads, c.surveys)}%</td>
-                          <td className="py-2 tabular-nums">{pct(c.yes, c.surveys)}%</td>
+                          <td className="py-2.5 pr-6 font-medium">{c.label}</td>
+                          <td className="py-2.5 pr-6 tabular-nums">{c.surveys} <span className="text-muted">· {pct(c.surveys, r.total)}%</span></td>
+                          <td className="py-2.5 pr-6 tabular-nums">{pct(c.leads, c.surveys)}%</td>
+                          <td className="py-2.5 tabular-nums">{pct(c.yes, c.surveys)}%</td>
                         </tr>
                       ))}
                     </tbody>
@@ -282,9 +282,9 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                 <table className="w-full min-w-[40rem] text-left text-sm">
                   <thead className="text-muted">
                     <tr className="border-b border-line">
-                      <th className="py-2 pr-3 font-medium">Goal</th><th className="py-2 pr-3 font-medium">In top 3</th>
-                      <th className="py-2 pr-3 font-medium">Ranked first</th><th className="py-2 pr-3 font-medium">Saving for it</th>
-                      <th className="py-2 font-medium">Top-3 but not saving</th>
+                      <th className="py-2.5 pr-6 font-medium">Goal</th><th className="py-2.5 pr-6 font-medium">In top 3</th>
+                      <th className="py-2.5 pr-6 font-medium">Ranked first</th><th className="py-2.5 pr-6 font-medium">Saving for it</th>
+                      <th className="py-2.5 font-medium">Top-3 but not saving</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -293,15 +293,15 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
                       const worst = r.goals.filter((x) => x.top3 >= 3).sort((a, b) => b.unfunded / b.top3 - a.unfunded / a.top3)[0]?.goal === g.goal;
                       return (
                         <tr key={g.goal} className="border-b border-line last:border-0">
-                          <td className="py-2 pr-3 font-medium">{g.goal}</td>
-                          <td className="py-2 pr-3">
+                          <td className="py-2.5 pr-6 font-medium">{g.goal}</td>
+                          <td className="py-2.5 pr-6">
                             <div className="flex items-center gap-2">
                               <div className="h-2.5 rounded-r" style={{ width: `${(g.top3 / Math.max(1, r.goals[0].top3)) * 6}rem`, background: BAR }} />
                               <span className="tabular-nums">{g.top3}</span>
                             </div>
                           </td>
-                          <td className="py-2 pr-3 tabular-nums">{g.first}</td>
-                          <td className="py-2 pr-3 tabular-nums">{g.saving}</td>
+                          <td className="py-2.5 pr-6 tabular-nums">{g.first}</td>
+                          <td className="py-2.5 pr-6 tabular-nums">{g.saving}</td>
                           <td className={`py-2 tabular-nums ${worst && g.unfunded ? "font-semibold text-accent" : ""}`}>{g.unfunded}{g.top3 ? ` · ${gapPct}%` : ""}</td>
                         </tr>
                       );
