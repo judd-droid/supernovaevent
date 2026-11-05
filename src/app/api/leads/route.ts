@@ -1,5 +1,6 @@
 import { db, notConfigured } from "@/lib/db";
 import { access, keyOk, mayRequest } from "@/lib/leads-access";
+import { loggerOf } from "@/lib/bigboard";
 
 export const dynamic = "force-dynamic";
 
@@ -28,5 +29,8 @@ export async function GET(req: Request) {
     can_request: mayRequest(advisor, leader, { advisor: r.advisor as string, source: (r.data as { source?: string })?.source }),
   }));
   const canAny = leads.some((l) => l.can_request);
-  return Response.json({ advisor, scope, leads, advisors: canAny ? all.map((a) => a.advisor) : [] });
+  // Leads move only to advisors on the same Logger (Spartans to Spartans).
+  const mine = loggerOf(all.find((a) => a.advisor.toLowerCase() === advisor.toLowerCase()));
+  const targets = all.filter((a) => loggerOf(a) === mine).map((a) => a.advisor);
+  return Response.json({ advisor, scope, leads, advisors: canAny ? targets : [] });
 }

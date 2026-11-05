@@ -1,5 +1,6 @@
 import { db, notConfigured } from "@/lib/db";
 import { access, keyOk, mayRequest } from "@/lib/leads-access";
+import { loggerOf } from "@/lib/bigboard";
 
 // A leader (or an event's team leader) asks for a lead to be moved to another
 // advisor. It waits on the admin page for the AD to approve. A newer request for
@@ -22,6 +23,8 @@ export async function POST(req: Request) {
   }
   const target = all.find((a) => a.advisor.toLowerCase() === to.toLowerCase());
   if (!target) return Response.json({ error: "That advisor isn't on the roster." }, { status: 400 });
+  const me = all.find((a) => a.advisor.toLowerCase() === advisor.toLowerCase());
+  if (loggerOf(target) !== loggerOf(me)) return Response.json({ error: "Leads can only move to advisors on your Logger." }, { status: 400 });
   if (target.advisor.toLowerCase() === lead.advisor.toLowerCase()) return Response.json({ error: "The lead is already theirs." }, { status: 400 });
 
   await sql`UPDATE reassign_requests SET status = 'replaced', decided_at = now() WHERE response_id = ${b.id} AND status = 'pending'`;
