@@ -10,7 +10,8 @@ const OPEN = ["/login", "/api/login", "/privacy", "/r", "/api/leads"];
 // team passcode (the AD's works too). Without passcodes set, it stays locked.
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (OPEN.includes(pathname) || pathname.startsWith("/medicard") || pathname.startsWith("/e/") || pathname.startsWith("/api/public/")) {
+  // /api/leads/* (moving a lead) checks the Loggers' key itself, like /api/leads.
+  if (OPEN.includes(pathname) || pathname.startsWith("/api/leads/") || pathname.startsWith("/medicard") || pathname.startsWith("/e/") || pathname.startsWith("/api/public/")) {
     return NextResponse.next();
   }
 
