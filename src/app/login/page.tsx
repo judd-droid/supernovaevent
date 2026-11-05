@@ -17,8 +17,11 @@ export default function Login() {
     const d = res ? await res.json().catch(() => ({})) : {};
     setBusy(false);
     if (!res?.ok) return setError(d.error ?? "Couldn't reach the server.");
-    const wantsAdmin = new URLSearchParams(window.location.search).get("admin");
-    window.location.href = wantsAdmin && d.admin ? "/admin" : "/";
+    const q = new URLSearchParams(window.location.search);
+    // Back to the page that sent them here (only a page on this site, never the admin without its passcode).
+    const next = q.get("next") ?? "";
+    const safeNext = /^\/(?![/\\])/.test(next) && !next.startsWith("/admin") ? next : "";
+    window.location.href = q.get("admin") && d.admin ? "/admin" : safeNext || "/";
   };
 
   return (

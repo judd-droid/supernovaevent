@@ -22,7 +22,7 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Sign in required" }, { status: 401 });
   const url = req.nextUrl.clone();
   url.pathname = "/login";
-  url.search = needsAdmin ? "?admin=1" : "";
+  url.search = needsAdmin ? "?admin=1" : pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : "";
   return NextResponse.redirect(url);
 }
 
