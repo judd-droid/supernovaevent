@@ -41,7 +41,7 @@ function PointsInfo() {
 
 function Card({ title, info, note, children, wide }: { title: string; info?: React.ReactNode; note?: string; children: React.ReactNode; wide?: boolean }) {
   return (
-    <section className={`relative break-inside-avoid rounded-xl border border-line bg-surface p-5 ${wide ? "md:col-span-2" : ""}`}>
+    <section className={`relative break-inside-avoid bg-surface p-5 ${wide ? "md:col-span-2" : ""}`}>
       <h2 className="flex items-center gap-1.5 font-display text-base font-semibold">{title}{info}</h2>
       {note && <p className="mt-0.5 text-sm text-muted">{note}</p>}
       <div className="mt-4">{children}</div>
@@ -147,7 +147,9 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
         <p className="mt-8 rounded-xl border border-line bg-surface px-4 py-8 text-center text-muted">No surveys for this event yet.</p>
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
+          {/* The whole report is one panel; sections are separated by hairlines, not gaps. */}
+          <div className="mt-6 grid gap-px overflow-hidden rounded-xl border border-line bg-line">
+          <div className="grid grid-cols-2 gap-px md:grid-cols-5">
             <Tile label="Surveys" value={r.total} />
             <Tile label="Leads" value={r.leads} sub={`${pct(r.leads, r.total)}% left details`} />
             <Tile label="Said yes" value={r.yes} sub={`${pct(r.yes, r.total)}% of surveys`} accent />
@@ -156,7 +158,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           {r.takeaways.length > 0 && (
-            <section className="mt-6 rounded-xl border border-line bg-surface p-5">
+            <section className="bg-surface p-5">
               <h2 className="font-display text-base font-semibold">Takeaways</h2>
               <ul className="mt-3 grid list-disc gap-1.5 pl-5 text-[15px] leading-relaxed">
                 {r.takeaways.map((t) => <li key={t}>{t}</li>)}
@@ -164,7 +166,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             </section>
           )}
 
-          <div className="mt-6 grid gap-6 md:grid-cols-2">
+          <div className="grid gap-px md:grid-cols-2">
             <Card title="From survey to conversation" note="How many respondents reached each step.">
               <Bars of={r.total} hl="Said yes" data={[
                 { label: "Answered the survey", n: r.total },
@@ -312,12 +314,12 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             </Card>
 
             <Card title="Opportunity groups" note="Respondents whose answers point to a clear need. Some fall in more than one group." wide>
-              <div className="grid gap-3 md:grid-cols-2">
-                {r.groups.filter((g) => g.rows.length).map((g) => {
+              <div className="grid gap-px overflow-hidden rounded-lg border border-line bg-line md:grid-cols-2">
+                {r.groups.filter((g) => g.rows.length).map((g, i, list) => {
                   const leads = g.rows.filter(contactable);
                   const warm = leads.filter((x) => x.data.answers.interest === "Yes" || x.data.answers.interest.startsWith("Maybe"));
                   return (
-                    <div key={g.key} className="rounded-lg border border-line p-4">
+                    <div key={g.key} className={`bg-surface p-4 ${list.length % 2 && i === list.length - 1 ? "md:col-span-2" : ""}`}>
                       <div className="flex items-baseline justify-between gap-3">
                         <div className="font-medium">{g.label}</div>
                         <div className="shrink-0 font-display text-2xl font-semibold tabular-nums">{g.rows.length}</div>
@@ -362,6 +364,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
             <Card title="Gender and civil status" note="From respondents who gave them.">
               <Bars data={[...r.gender, ...r.civil]} of={r.total} />
             </Card>
+          </div>
           </div>
 
           <p className="mt-6 text-xs text-muted">
