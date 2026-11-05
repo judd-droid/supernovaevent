@@ -19,7 +19,18 @@ export async function GET(req: Request) {
 export async function PATCH(req: Request) {
   const sql = await db();
   if (!sql) return notConfigured();
-  const b = (await req.json().catch(() => ({}))) as { id?: string; from?: string; event?: string; advisor?: string };
+  const b = (await req.json().catch(() => ({}))) as { id?: string; from?: string; event?: string; advisor?: string; toEvent?: string };
+
+  // Correct the event one survey belongs to ({ id, toEvent }).
+  if (b.id && b.toEvent) {
+    const ev = await sql`SELECT id, name FROM events WHERE id = ${b.toEvent}`;
+    if (!ev[0]) return Response.json({ error: "Event not found." }, { status: 404 });
+    const moved = await sql`UPDATE responses SET event_id = ${ev[0].id},
+                              data = jsonb_set(data, '{eventName}', to_jsonb(${ev[0].name}::text))
+                            WHERE id = ${b.id} AND event_id <> ${ev[0].id} RETURNING id`;
+    return Response.json({ ok: true, moved: moved.length });
+  }
+
   const advisor = String(b.advisor ?? "").trim();
   if (!advisor || (!b.id && !b.from)) return Response.json({ error: "Missing survey or advisor." }, { status: 400 });
   const moved = b.id

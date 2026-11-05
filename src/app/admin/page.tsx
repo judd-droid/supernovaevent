@@ -72,6 +72,12 @@ export default function Admin() {
     await fetch("/api/admin/responses", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, advisor }) });
     load();
   };
+  const changeEvent = async (r: Row, toEvent: string) => {
+    const res = await fetch("/api/admin/responses", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: r.id, toEvent }) });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Moved ${r.data.contact.name || "the survey"} to ${evName.get(toEvent)}.` : d.error ?? "Couldn't change the event.");
+    load();
+  };
 
   // Move every lead of one advisor (optionally only one event's) to another.
   const moveAll = async () => {
@@ -253,7 +259,7 @@ export default function Admin() {
           <button onClick={moveAll} disabled={!moveFrom || !moveTo}
             className="h-11 rounded-lg bg-foreground px-4 font-medium text-white disabled:opacity-40">Move leads</button>
         </div>
-        <p className="mt-2 text-xs text-muted">The From list shows advisors with leads in the surveys listed below. To move a single lead, open it below and change its owner.</p>
+        <p className="mt-2 text-xs text-muted">The From list shows advisors with leads in the surveys listed below. To move a single lead, open it below and change its owner or its event.</p>
       </section>
 
       <section className="mt-8">
@@ -299,12 +305,21 @@ export default function Admin() {
                     <div><b>Emergency cover:</b> {a.emergency || "-"}</div>
                     <div><b>Contact by:</b> {a.contactBy.join(", ") || "-"} {a.contactWhen && `(${a.contactWhen})`}</div>
                     <div><b>Details:</b> {[c.gender, c.civilStatus, c.birthDate].filter(Boolean).join(", ") || "-"} · Consent: {consent ? "Yes" : "No"}</div>
-                    <label className="mt-2 flex items-center gap-2 md:col-span-2">
-                      <span className="text-muted">Owner</span>
-                      <select value={r.advisor} onChange={(e) => reassign(r.id, e.target.value)} className="h-9 rounded-lg border border-line bg-white px-2">
-                        {[r.advisor, ...advisors.filter((x) => x !== r.advisor)].map((x) => <option key={x}>{x}</option>)}
-                      </select>
-                    </label>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 md:col-span-2">
+                      <label className="flex items-center gap-2">
+                        <span className="text-muted">Owner</span>
+                        <select value={r.advisor} onChange={(e) => reassign(r.id, e.target.value)} className="h-9 rounded-lg border border-line bg-white px-2">
+                          {[r.advisor, ...advisors.filter((x) => x !== r.advisor)].map((x) => <option key={x}>{x}</option>)}
+                        </select>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <span className="text-muted">Event</span>
+                        <select value={r.event_id} onChange={(e) => changeEvent(r, e.target.value)} className="h-9 max-w-64 rounded-lg border border-line bg-white px-2">
+                          {!evName.has(r.event_id) && <option value={r.event_id}>{r.data.eventName ?? "Unknown event"}</option>}
+                          {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+                        </select>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
