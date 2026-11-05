@@ -182,11 +182,11 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
               {!r.follow.length ? <p className="text-sm text-muted">No leads with contact details yet.</p> : (
                 <>
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[58rem] text-left text-sm">
+                    <table className="w-full min-w-[50rem] text-left text-sm">
                       <thead className="text-muted">
                         <tr className="border-b border-line">
                           <th className="py-2.5 pr-6 font-medium">#</th><th className="py-2.5 pr-6 font-medium">Name</th><th className="py-2.5 pr-6 font-medium">Mobile</th>
-                          <th className="py-2.5 pr-6 font-medium">Owner</th><th className="py-2.5 pr-6 font-medium">Prefers</th>
+                          <th className="py-2.5 pr-6 font-medium">Owner</th><th className="w-44 py-2.5 pr-6 font-medium">Prefers</th>
                           <th className="py-2.5 pr-6 text-right font-medium">Points</th><th className="py-2.5 font-medium">Why call</th>
                         </tr>
                       </thead>
