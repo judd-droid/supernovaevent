@@ -51,7 +51,7 @@ function Card({ title, info, note, children, wide }: { title: string; info?: Rea
 
 function Tile({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
+    <div className="bg-surface p-4 last:col-span-2 md:last:col-span-1">
       <div className="text-sm text-muted">{label}</div>
       <div className={`mt-1 font-display text-3xl font-semibold tabular-nums ${accent ? "text-accent" : ""}`}>{value}</div>
       {sub && <div className="mt-0.5 text-sm text-muted">{sub}</div>}
@@ -147,7 +147,7 @@ export default function Stats({ params }: { params: Promise<{ id: string }> }) {
         <p className="mt-8 rounded-xl border border-line bg-surface px-4 py-8 text-center text-muted">No surveys for this event yet.</p>
       ) : (
         <>
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+          <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line md:grid-cols-5">
             <Tile label="Surveys" value={r.total} />
             <Tile label="Leads" value={r.leads} sub={`${pct(r.leads, r.total)}% left details`} />
             <Tile label="Said yes" value={r.yes} sub={`${pct(r.yes, r.total)}% of surveys`} accent />
