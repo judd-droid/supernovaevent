@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { QrCode, X } from "lucide-react";
+import { Check, Copy, QrCode, Share2, X } from "lucide-react";
 
 type Info = { name: string; active: boolean; path: string; isLeader: boolean };
 
 // The signed-in advisor's own QR code. Scans of it are this advisor's leads. With an
 // event, the code is for that event; "No event" gives their personal code, tied to no
-// event (its leads carry no event name). Shown on screen only, with the advisor's
-// name and the event under the code so a wrong advisor or event is caught before a scan.
+// event (its leads carry no event name), and comes with its link to copy or share
+// (chats, posts). Event codes are shown on screen only. The advisor's name and the
+// event sit under the code so a wrong advisor or event is caught before a scan.
 export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
   eventId?: string; eventName?: string; advisor: string; mobile: string; onClose: () => void;
 }) {
@@ -18,7 +19,14 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
   const [qr, setQr] = useState("");
   const [personal, setPersonal] = useState(!eventId);
   const id = personal ? "" : eventId ?? "";
-  const choose = (p: boolean) => { if (p === personal) return; setInfo(null); setQr(""); setError(""); setPersonal(p); };
+  const [copied, setCopied] = useState(false);
+  const choose = (p: boolean) => { if (p === personal) return; setInfo(null); setQr(""); setError(""); setCopied(false); setPersonal(p); };
+  const link = info && typeof window !== "undefined" ? `${window.location.origin}${info.path}` : "";
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    catch { window.prompt("Copy your survey link:", link); }
+  };
+  const share = () => navigator.share?.({ title: "Free Financial Wellness Snapshot", text: "Answer a short survey and get your free Financial Wellness Snapshot:", url: link }).catch(() => {});
 
   useEffect(() => {
     const q = new URLSearchParams({ id, advisor, mobile });
@@ -74,6 +82,22 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
         {qr ? <img src={qr} alt={`QR code for ${advisor}'s survey`} className="mt-4 w-full max-w-[360px]" />
           : <div className="mt-4 aspect-square w-full max-w-[360px] rounded-xl bg-background" />}
         <p className="mt-3 text-sm text-muted">Scan with your phone camera to answer the survey.</p>
+        {personal && link && (
+          <div className="mt-5 w-full max-w-[360px] text-left">
+            <p className="text-xs font-medium text-muted">Or send this link</p>
+            <div className="mt-1 break-all rounded-lg border border-line bg-background px-3 py-2 text-xs">{link}</div>
+            <div className="mt-2 flex gap-2">
+              <button type="button" onClick={copy} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-line text-sm font-medium">
+                {copied ? <><Check size={15} /> Copied</> : <><Copy size={15} /> Copy link</>}
+              </button>
+              {typeof navigator !== "undefined" && "share" in navigator && (
+                <button type="button" onClick={share} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full bg-foreground text-sm font-medium text-white">
+                  <Share2 size={15} /> Share
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {info && <p className="mt-2 text-xs text-muted">{personal ? `${advisor}'s personal code, for any time (no event)` : `${info.name} via ${advisor}`}</p>}
 
         {!personal && info?.isLeader && (
