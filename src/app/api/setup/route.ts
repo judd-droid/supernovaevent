@@ -13,7 +13,8 @@ export async function GET() {
     else events = (await sql`SELECT id, name, to_char(date, 'YYYY-MM-DD') AS date, venue, survey FROM events
                              WHERE active ORDER BY date DESC NULLS LAST, created_at DESC`) as typeof events;
   } catch (e) {
-    errors.push(`Events: ${e instanceof Error ? e.message : e}`);
+    console.error("[setup]", e);
+    errors.push("Couldn't load the events. Try again in a moment.");
   }
   return Response.json({ events, errors });
 }
