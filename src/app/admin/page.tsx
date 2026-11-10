@@ -81,6 +81,17 @@ export default function Admin() {
     load();
   };
 
+  // Delete one survey, after a confirm (its lead leaves the advisor's Logger too).
+  const deleteOne = async (r: Row) => {
+    const who = r.data.contact.name || "this survey";
+    if (!window.confirm(`Delete ${who}'s survey? Its lead will also disappear from ${r.advisor}'s Logger. This can't be undone.`)) return;
+    const res = await fetch(`/api/admin/responses?id=${encodeURIComponent(r.id)}`, { method: "DELETE" });
+    const d = await res.json().catch(() => ({}));
+    setNotice(res.ok ? `Deleted ${who === "this survey" ? "the survey" : `${who}'s survey`}.` : d.error ?? "Couldn't delete the survey.");
+    if (res.ok) { setOpen(null); setPicked((p) => { const n = new Set(p); n.delete(r.id); return n; }); }
+    load();
+  };
+
   // Move every lead of one advisor (optionally only one event's) to another.
   const moveAll = async () => {
     const scope = moveEvent ? ` from ${evName.get(moveEvent)}` : "";
@@ -432,6 +443,10 @@ export default function Admin() {
                           {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
                         </select>
                       </label>
+                      <button onClick={() => deleteOne(r)}
+                        className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg border border-line px-3 text-accent">
+                        <Trash2 size={15} /> Delete survey
+                      </button>
                     </div>
                   </div>
                 )}

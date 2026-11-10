@@ -59,3 +59,16 @@ export async function PATCH(req: Request) {
   }
   return Response.json({ ok: true, moved: ids.length });
 }
+
+// Delete one survey (?id=...) and any move requests for it. The Loggers read leads
+// live from here, so the lead disappears there too. There's no undo.
+export async function DELETE(req: Request) {
+  const sql = await db();
+  if (!sql) return notConfigured();
+  const id = new URL(req.url).searchParams.get("id") ?? "";
+  if (!id) return Response.json({ error: "Missing survey." }, { status: 400 });
+  await sql`DELETE FROM reassign_requests WHERE response_id = ${id}`;
+  const gone = await sql`DELETE FROM responses WHERE id = ${id} RETURNING id`;
+  if (!gone.length) return Response.json({ error: "That survey was already deleted." }, { status: 404 });
+  return Response.json({ ok: true });
+}
