@@ -7,8 +7,10 @@
 // characters, so "me" can never be one.
 export const PERSONAL_TOKEN = "me";
 
+// Only QR_SECRET signs codes (no fallback to other secrets, so rotating the
+// Loggers' key or a passcode never breaks codes already shared).
 function secret(): string {
-  return process.env.QR_SECRET || process.env.LEADS_API_KEY || process.env.ADMIN_PASSCODE || "";
+  return process.env.QR_SECRET || "";
 }
 
 export async function qrSig(eventToken: string, advisor: string, mobile: string): Promise<string> {

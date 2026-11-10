@@ -24,7 +24,7 @@ export default function MyQrPage() {
   useEffect(() => {
     const s = getSetup();
     /* eslint-disable react-hooks/set-state-in-effect -- one read of device storage on mount */
-    if (s?.advisor) { setPicked(s.advisor); setMobile(getMobile(s.advisor)); }
+    if (s?.advisor) setMobile(getMobile(s.advisor));
     setReady(true);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
@@ -43,7 +43,7 @@ export default function MyQrPage() {
   };
 
   if (!ready) return null;
-  if (advisor) return <MyQr advisor={advisor} mobile={mobile} onClose={() => { window.location.href = "/"; }} />;
+  if (advisor) return <MyQr advisor={advisor} mobile={mobile} onClose={() => { window.location.href = "/"; }} onReconfirm={() => setAdvisor("")} />;
 
   return (
     <main className="mx-auto w-full max-w-2xl px-5 pb-16 pt-8">

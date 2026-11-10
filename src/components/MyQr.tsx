@@ -11,9 +11,12 @@ type Info = { name: string; active: boolean; path: string; isLeader: boolean };
 // event (its leads carry no event name), and comes with its link to copy or share
 // (chats, posts). Event codes are shown on screen only. The advisor's name and the
 // event sit under the code so a wrong advisor or event is caught before a scan.
-export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
+export function MyQr({ eventId, eventName, advisor, mobile, onClose, onReconfirm }: {
   eventId?: string; eventName?: string; advisor: string; mobile: string; onClose: () => void;
+  /** Opens the agent-code step, for a device that hasn't confirmed this advisor yet. */
+  onReconfirm?: () => void;
 }) {
+  const [reconfirm, setReconfirm] = useState(false);
   const [info, setInfo] = useState<Info | null>(null);
   const [error, setError] = useState("");
   const [qr, setQr] = useState("");
@@ -33,7 +36,7 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
     fetch(`/api/my-qr?${q}`)
       .then(async (r) => {
         const d = await r.json().catch(() => ({}));
-        if (!r.ok) return setError(d.error ?? "Couldn't load your QR code.");
+        if (!r.ok) { setReconfirm(!!d.reconfirm); return setError(d.error ?? "Couldn't load your QR code."); }
         setInfo(d as Info);
         setQr(await QRCode.toDataURL(`${window.location.origin}${d.path}`, {
           errorCorrectionLevel: "M", margin: 2, width: 900, color: { dark: "#14181c", light: "#ffffff" },
@@ -70,6 +73,11 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose }: {
         )}
 
         {error && <p className="mt-6 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">{error}</p>}
+        {error && reconfirm && onReconfirm && (
+          <button type="button" onClick={onReconfirm} className="mt-3 h-11 rounded-full bg-foreground px-5 text-sm font-medium text-white">
+            Confirm my agent code
+          </button>
+        )}
         {info && !personal && !info.active && (
           <p className="mt-6 rounded-lg bg-accent-soft px-3 py-2 text-sm text-accent">
             This event is closed, so this code won&rsquo;t open the survey. Tap the calendar icon to choose today&rsquo;s event.

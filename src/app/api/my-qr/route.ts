@@ -1,5 +1,6 @@
 import { db, notConfigured } from "@/lib/db";
 import { PERSONAL_TOKEN, qrSig } from "@/lib/qrsign";
+import { deviceHasAdvisor } from "@/lib/advisor-cookie";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,10 @@ export async function GET(req: Request) {
   const advisor = (p.get("advisor") ?? "").trim();
   const mobile = (p.get("mobile") ?? "").trim();
   if (!advisor) return Response.json({ error: "Sign in as an advisor first." }, { status: 400 });
+  // Only for an advisor this device has proved with their agent code.
+  if (!(await deviceHasAdvisor(req, advisor))) {
+    return Response.json({ error: "Confirm your agent code on this device to open your QR code.", reconfirm: true }, { status: 403 });
+  }
   if (!id) {
     const s = await qrSig(PERSONAL_TOKEN, advisor, mobile);
     if (!s) return Response.json({ error: "Personal QR codes aren't set up yet." }, { status: 503 });

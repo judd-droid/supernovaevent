@@ -110,7 +110,8 @@ export default function Home() {
         </header>
       )}
 
-      {myQr && <MyQr eventId={setup.eventId} eventName={setup.eventName} advisor={setup.advisor} mobile={getMobile(setup.advisor)} onClose={closeMyQr} />}
+      {myQr && <MyQr eventId={setup.eventId} eventName={setup.eventName} advisor={setup.advisor} mobile={getMobile(setup.advisor)} onClose={closeMyQr}
+        onReconfirm={() => { setMyQr(false); setChanging("advisor"); }} />}
 
       {done ? (
         // The Quick Result is for respondents who left their contact details; everyone else is thanked.

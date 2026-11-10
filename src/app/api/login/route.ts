@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE, TEAM_COOKIE, sameString, token } from "@/lib/session";
+import { clientIp, overLimit, tooMany } from "@/lib/ratelimit";
 
 // The team passcode signs a device in for surveys; the AD's passcode also opens admin.
+// At most 10 tries per device (IP) every 15 minutes, so passcodes can't be guessed.
 export async function POST(req: Request) {
+  if (await overLimit(`login:${clientIp(req)}`, 10, 15 * 60)) {
+    return tooMany("Too many tries. Wait 15 minutes, then try again.");
+  }
   const { passcode } = (await req.json().catch(() => ({}))) as { passcode?: string };
   const p = String(passcode ?? "").trim();
   const adminPass = process.env.ADMIN_PASSCODE;
