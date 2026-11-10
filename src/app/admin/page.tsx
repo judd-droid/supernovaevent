@@ -176,7 +176,14 @@ export default function Admin() {
     const head = ["Date", "Event", "Advisor", "Name", "Mobile", "Gender", "Civil status", "Date of birth", "Consent",
       "Q1 Saving for", "Q2 Top 3", "Q3 Household role", "Q4 Dependents", "Q5 Money kept in", "Q6 Satisfaction",
       "Q7 Retirement", "Q8 Emergency cover", "Q9 Interested", "Q10 Contact by", "Preferred time"];
-    const cell = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    // Respondents type some of these fields. A value starting with = + - @ (or a tab or
+    // return) would run as a formula in Excel or Sheets, so it's prefixed with an apostrophe.
+    const cell = (v: unknown) => {
+      const s = String(v ?? "");
+      const risky = ["=", "+", "-", "@"].includes(s[0]) || s.charCodeAt(0) === 9 || s.charCodeAt(0) === 13;
+      const safe = risky ? `'${s}` : s;
+      return `"${safe.replace(/"/g, '""')}"`;
+    };
     const lines = shown.map(({ data: { answers: a, contact: c, consent }, ...r }) => [
       when(r.created_at), evName.get(r.event_id) ?? r.event_id, r.advisor, c.name, c.mobile, c.gender, c.civilStatus, c.birthDate,
       consent ? "Yes" : "No", [...a.saving, a.savingOther].filter(Boolean).join("; "), a.ranked.join("; "), a.role, a.dependents,
