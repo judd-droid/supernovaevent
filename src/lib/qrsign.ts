@@ -1,6 +1,11 @@
 // An advisor's own QR code carries their name (and mobile, for the respondent's
 // Snapshot) with a signature, so a respondent can't edit the link to hand the
 // lead to someone else.
+//
+// An advisor's personal code (not tied to any event) is signed the same way with
+// PERSONAL_TOKEN in place of an event's public token. Real event tokens are 16 hex
+// characters, so "me" can never be one.
+export const PERSONAL_TOKEN = "me";
 
 function secret(): string {
   return process.env.QR_SECRET || process.env.LEADS_API_KEY || process.env.ADMIN_PASSCODE || "";

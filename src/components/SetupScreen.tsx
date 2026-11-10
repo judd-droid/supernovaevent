@@ -64,6 +64,7 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
         <div className="mt-6">
           {events === null && <p className="text-sm text-muted">Loading events…</p>}
           {events?.length === 0 && !errors.length && <p className="text-sm text-muted">No open events yet. Ask Judd to add one.</p>}
+          <p className="mb-4 text-sm text-muted">Not at an event? <a href="/my-qr" className="font-medium text-foreground underline">Open your personal QR code</a>. Its surveys come to you as leads with no event.</p>
           {events && events.length > 0 && (
             <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
               {events.map((e) => (

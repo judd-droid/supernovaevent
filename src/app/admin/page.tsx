@@ -390,7 +390,7 @@ export default function Admin() {
                     <div className="font-medium">{c.name || "No name given"}{c.mobile && <span className="text-muted"> · {c.mobile}</span>}
                       {r.data.source === "qr" && <span className="ml-2 rounded-full bg-background px-2 py-0.5 text-xs text-muted">Scanned QR</span>}</div>
                     <div className="text-sm text-muted">
-                      {when(r.created_at)} · {evName.get(r.event_id) ?? ""} · Top: {a.ranked[0] ?? "-"} · {a.interest || "-"}
+                      {when(r.created_at)} · {evName.get(r.event_id) ?? (r.event_id ? "" : "No event")} · Top: {a.ranked[0] ?? "-"} · {a.interest || "-"}
                     </div>
                   </div>
                   <div className="text-right text-sm">
@@ -421,7 +421,7 @@ export default function Admin() {
                       <label className="flex items-center gap-2">
                         <span className="text-muted">Event</span>
                         <select value={r.event_id} onChange={(e) => changeEvent(r, e.target.value)} className="h-9 max-w-64 rounded-lg border border-line bg-white px-2">
-                          {!evName.has(r.event_id) && <option value={r.event_id}>{r.data.eventName ?? "Unknown event"}</option>}
+                          {!evName.has(r.event_id) && <option value={r.event_id}>{r.event_id ? (r.data.eventName || "Unknown event") : "No event (personal QR)"}</option>}
                           {events.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
                         </select>
                       </label>

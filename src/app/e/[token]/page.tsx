@@ -9,7 +9,7 @@ import type { SurveyResponse } from "@/lib/survey";
 type Ev = { name: string; survey: string; leader: string; leaderMobile: string };
 
 // The self-service survey a respondent opens on their own phone from the event's
-// QR code. No sign-in. The survey belongs to the event's team leader (or, from an
+// QR code, or from an advisor's personal code (/e/me, no event). No sign-in. The survey belongs to the event's team leader (or, from an
 // advisor's own code, to that advisor); with
 // contact details it opens their Financial Wellness Snapshot, otherwise a thank-you.
 export default function SelfService({ params }: { params: Promise<{ token: string }> }) {
@@ -55,7 +55,7 @@ export default function SelfService({ params }: { params: Promise<{ token: strin
           <h1 className="font-display text-3xl font-bold tracking-tight">Thank you for your time!</h1>
           <div className="mx-auto mt-3 h-1 w-12 rounded bg-accent" />
           <p className="mt-4 text-[17px] text-muted">
-            Your answers help us understand the financial priorities of the people we serve. Enjoy the rest of the event!
+            Your answers help us understand the financial priorities of the people we serve.{ev.name ? " Enjoy the rest of the event!" : ""}
           </p>
         </div>
       ) : (
