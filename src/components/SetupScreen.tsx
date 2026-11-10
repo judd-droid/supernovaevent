@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, ChevronRight, QrCode } from "lucide-react";
 import { getMobile, saveMobile, type Setup } from "@/lib/device";
 
 type Ev = { id: string; name: string; date: string | null; venue: string; survey?: string };
@@ -62,23 +63,29 @@ export function SetupScreen({ current, only, onDone, onCancel }: {
 
       {step === "event" ? (
         <div className="mt-6">
-          {events === null && <p className="text-sm text-muted">Loading events…</p>}
-          {events?.length === 0 && !errors.length && <p className="text-sm text-muted">No open events yet. Ask Judd to add one.</p>}
-          <p className="mb-4 text-sm text-muted">Not at an event? <a href="/my-qr" className="font-medium text-foreground underline">Open your personal QR code</a>. Its surveys come to you as leads with no event.</p>
-          {events && events.length > 0 && (
-            <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
-              {events.map((e) => (
-                <button key={e.id} onClick={() => { setEvent(e); setStep("advisor"); }}
-                  className="flex w-full items-center gap-3 px-4 py-4 text-left active:bg-background">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-display text-[17px] font-semibold">{e.name}</div>
-                    {e.venue && <div className="text-sm text-muted">{e.venue}</div>}
-                  </div>
-                  {event?.id === e.id && <Check size={18} className="text-accent" />}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* The personal QR code comes first, styled like the events: it's always open. */}
+          <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+            <Link href="/my-qr" className="flex w-full items-center gap-3 px-4 py-4 text-left active:bg-background">
+              <QrCode size={20} className="shrink-0 text-accent" />
+              <div className="min-w-0 flex-1">
+                <div className="font-display text-[17px] font-semibold">My personal QR code</div>
+                <div className="text-sm text-muted">No event: its surveys come to you as leads, any time</div>
+              </div>
+              <ChevronRight size={18} className="shrink-0 text-muted" />
+            </Link>
+            {events?.map((e) => (
+              <button key={e.id} onClick={() => { setEvent(e); setStep("advisor"); }}
+                className="flex w-full items-center gap-3 px-4 py-4 text-left active:bg-background">
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-[17px] font-semibold">{e.name}</div>
+                  {e.venue && <div className="text-sm text-muted">{e.venue}</div>}
+                </div>
+                {event?.id === e.id && <Check size={18} className="text-accent" />}
+              </button>
+            ))}
+          </div>
+          {events === null && <p className="mt-3 text-sm text-muted">Loading events…</p>}
+          {events?.length === 0 && !errors.length && <p className="mt-3 text-sm text-muted">No open events yet. Ask Judd to add one.</p>}
         </div>
       ) : (
         <div className="mt-6">

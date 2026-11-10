@@ -91,8 +91,8 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose, onReconfirm
           : <div className="mt-4 aspect-square w-full max-w-[360px] rounded-xl bg-background" />}
         <p className="mt-3 text-sm text-muted">Scan with your phone camera to answer the survey.</p>
         {personal && link && (
-          <div className="mt-5 w-full max-w-[360px] text-left">
-            <p className="text-xs font-medium text-muted">Or send this link</p>
+          <div className="mt-5 w-full max-w-[360px] border-t border-line pt-5 text-left">
+            <p className="text-xs font-medium text-muted">Or use this link</p>
             <div className="mt-1 break-all rounded-lg border border-line bg-background px-3 py-2 text-xs">{link}</div>
             <div className="mt-2 flex gap-2">
               <button type="button" onClick={copy} className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-line text-sm font-medium">
@@ -106,7 +106,7 @@ export function MyQr({ eventId, eventName, advisor, mobile, onClose, onReconfirm
             </div>
           </div>
         )}
-        {info && <p className="mt-2 text-xs text-muted">{personal ? `${advisor}'s personal code, for any time (no event)` : `${info.name} via ${advisor}`}</p>}
+        {info && !personal && <p className="mt-2 text-xs text-muted">{info.name} via {advisor}</p>}
 
         {!personal && info?.isLeader && (
           <a href={`/event-qr/${eventId}`} target="_blank" rel="noopener"
