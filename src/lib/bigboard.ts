@@ -4,7 +4,8 @@ export type RosterAdvisor = { advisor: string; unit?: string; isLeader?: boolean
 
 // Which Logger an advisor uses: Spartans use the Appointment 15 Logger; Legacy
 // and Wolfpack share the Appointment 5 Logger. Leads only move within one Logger.
-export const loggerOf = (a?: RosterAdvisor) => (a?.division === "Spartan" ? "appt15" : "appt5");
+// "Spartan Guest" (working with the team before a transfer is official) counts as a Spartan here.
+export const loggerOf = (a?: RosterAdvisor) => (/^spartan\b/i.test(a?.division ?? "") ? "appt15" : "appt5");
 
 export async function roster(): Promise<RosterAdvisor[]> {
   const base = process.env.BIGBOARD_URL;
